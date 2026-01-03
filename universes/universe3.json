@@ -1,0 +1,72 @@
+{
+  "courses": [
+    {
+      "courseId": "MATH1131",
+      "name": "Mathematics 1A"
+    },
+    {
+      "courseId": "COMP1511",
+      "name": "Programming Fundamentals"
+    },
+    {
+      "courseId": "COMP2521",
+      "name": "Data Structures and Algorithms"
+    }
+  ],
+  "exams": [
+    {
+      "examId": "E1-MATH1131",
+      "courseId": "MATH1131",
+      "name": "Algebra Test",
+      "requiredStudyHours": 2
+    },
+    {
+      "examId": "E2-MATH1131",
+      "courseId": "MATH1131",
+      "name": "Calculus Test",
+      "requiredStudyHours": 3
+    },
+    {
+      "examId": "E3-MATH1131",
+      "courseId": "MATH1131",
+      "name": "Final Exam",
+      "requiredStudyHours": 5
+    },
+    {
+      "examId": "E1-COMP1511",
+      "courseId": "COMP1511",
+      "name": "C Basics",
+      "requiredStudyHours": 2
+    },
+    {
+      "examId": "E2-COMP1511",
+      "courseId": "COMP1511",
+      "name": "Arrays and Pointers",
+      "requiredStudyHours": 3
+    },
+    {
+      "examId": "E3-COMP1511",
+      "courseId": "COMP1511",
+      "name": "Final Exam",
+      "requiredStudyHours": 4
+    },
+    {
+      "examId": "E1-COMP2521",
+      "courseId": "COMP2521",
+      "name": "Lists and Trees",
+      "requiredStudyHours": 3
+    },
+    {
+      "examId": "E2-COMP2521",
+      "courseId": "COMP2521",
+      "name": "Graphs",
+      "requiredStudyHours": 4
+    },
+    {
+      "examId": "E3-COMP2521",
+      "courseId": "COMP2521",
+      "name": "Final Exam",
+      "requiredStudyHours": 6
+    }
+  ]
+}

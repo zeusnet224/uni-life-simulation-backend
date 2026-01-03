@@ -1,0 +1,50 @@
+{
+  "courses": [
+    {
+      "courseId": "COMP1511",
+      "name": "Programming Fundamentals"
+    },
+    {
+      "courseId": "COMP1531",
+      "name": "Software Engineering Fundamentals"
+    }
+  ],
+  "exams": [
+    {
+      "examId": "E1-COMP1511",
+      "courseId": "COMP1511",
+      "name": "Lab Test 1",
+      "requiredStudyHours": 1
+    },
+    {
+      "examId": "E2-COMP1511",
+      "courseId": "COMP1511",
+      "name": "Lab Test 2",
+      "requiredStudyHours": 2
+    },
+    {
+      "examId": "E3-COMP1511",
+      "courseId": "COMP1511",
+      "name": "Final Exam",
+      "requiredStudyHours": 4
+    },
+    {
+      "examId": "E1-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Teamwork Check",
+      "requiredStudyHours": 2
+    },
+    {
+      "examId": "E2-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Backend Design",
+      "requiredStudyHours": 3
+    },
+    {
+      "examId": "E3-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Final Exam",
+      "requiredStudyHours": 5
+    }
+  ]
+}

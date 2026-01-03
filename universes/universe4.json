@@ -1,0 +1,48 @@
+{
+  "courses": [
+    {
+      "courseId": "COMP1511",
+      "name": "Programming Fundamentals"
+    },
+    {
+      "courseId": "COMP1521",
+      "name": "Computer Systems Fundamentals"
+    },
+    {
+      "courseId": "COMP1531",
+      "name": "Software Engineering Fundamentals"
+    },
+    {
+      "courseId": "COMP2521",
+      "name": "Data Structures and Algorithms"
+    },
+    {
+      "courseId": "COMP3311",
+      "name": "Database Systems"
+    },
+    {
+      "courseId": "COMP6080",
+      "name": "Web Front-End Programming"
+    }
+  ],
+  "exams": [
+    { "examId": "E1-COMP1511", "courseId": "COMP1511", "name": "Basics Test", "requiredStudyHours": 2 },
+    { "examId": "E2-COMP1511", "courseId": "COMP1511", "name": "Pointers Test", "requiredStudyHours": 3 },
+    { "examId": "E3-COMP1511", "courseId": "COMP1511", "name": "Final Exam", "requiredStudyHours": 4 },
+    { "examId": "E1-COMP1521", "courseId": "COMP1521", "name": "MIPS Test", "requiredStudyHours": 3 },
+    { "examId": "E2-COMP1521", "courseId": "COMP1521", "name": "Processes Test", "requiredStudyHours": 4 },
+    { "examId": "E3-COMP1521", "courseId": "COMP1521", "name": "Final Exam", "requiredStudyHours": 5 },
+    { "examId": "E1-COMP1531", "courseId": "COMP1531", "name": "Requirements Test", "requiredStudyHours": 2 },
+    { "examId": "E2-COMP1531", "courseId": "COMP1531", "name": "Design Test", "requiredStudyHours": 3 },
+    { "examId": "E3-COMP1531", "courseId": "COMP1531", "name": "Final Exam", "requiredStudyHours": 5 },
+    { "examId": "E1-COMP2521", "courseId": "COMP2521", "name": "Trees Test", "requiredStudyHours": 3 },
+    { "examId": "E2-COMP2521", "courseId": "COMP2521", "name": "Graphs Test", "requiredStudyHours": 4 },
+    { "examId": "E3-COMP2521", "courseId": "COMP2521", "name": "Final Exam", "requiredStudyHours": 6 },
+    { "examId": "E1-COMP3311", "courseId": "COMP3311", "name": "SQL Test", "requiredStudyHours": 3 },
+    { "examId": "E2-COMP3311", "courseId": "COMP3311", "name": "Schema Design", "requiredStudyHours": 4 },
+    { "examId": "E3-COMP3311", "courseId": "COMP3311", "name": "Final Exam", "requiredStudyHours": 5 },
+    { "examId": "E1-COMP6080", "courseId": "COMP6080", "name": "HTML CSS Test", "requiredStudyHours": 2 },
+    { "examId": "E2-COMP6080", "courseId": "COMP6080", "name": "React Test", "requiredStudyHours": 3 },
+    { "examId": "E3-COMP6080", "courseId": "COMP6080", "name": "Final Exam", "requiredStudyHours": 5 }
+  ]
+}

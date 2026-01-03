@@ -1,0 +1,14 @@
+# OS/editor files
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Local/generated data
+data.json
+
+# Build/output directories
+dist/
+build/
