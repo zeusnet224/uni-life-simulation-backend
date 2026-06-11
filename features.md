@@ -10,7 +10,7 @@ Complete this section before writing your function interface table. Use the prov
 
 | Feature | Related story/stories | What the feature allows the student/system to do | State/data needed |
 | ------- | --------------------- | ----------------------------------------------- | ----------------- |
-| Example: View simulation progress | Story 1 | Retrieve current simulation status and progress information | Simulation status, activity, stats, elapsed time, exam study progress |
+| View simulation progress | Story 1 | Retrieve current simulation status and progress information | Simulation status, activity, stats, elapsed time, exam study progress |
 |  |  |  |  |
 |  |  |  |  |
 |  |  |  |  |
@@ -25,6 +25,6 @@ Use the same table format as the prescribed interface table in the specification
 
 | Name & Description | Data Types |
 | ------------------ | ---------- |
-|  |  |
+| simulationList: Returns a list of all simulations instances for a student, with a summary. | Parameters: (studentId) <br> Return Object: {simulations: [ {simulationId: simulationStatus: 'ACTIVE', currentActivity: 'STUDYING', timeElapsed:5} ] } |
 |  |  |
 |  |  |
