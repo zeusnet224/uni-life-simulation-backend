@@ -14,8 +14,27 @@
 let data = {
   // Add your data structure here
 }
-```
 
+let courses = [
+  {
+  courseId: string,
+  name: string,
+  courseDetails: string
+  }
+]
+
+let exams = [
+  {
+    examId: string,
+    courseId: string,
+    name: string,
+    requiredStudyHours: number,
+    examDetails: string
+  }
+]
+```
 ## Notes
 
 <!-- Add any notes or considerations about your data structure design here -->
+
+the course and exam data structures are basically the same as in the specifications but with the addition of course details and exam details respectively to allign with the required criteria in story 3
