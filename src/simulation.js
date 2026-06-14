@@ -15,6 +15,17 @@ function simulationStatus(studentId, simulationId) {
   };
 }
 
+function simulationStatusFinal(studentId, simulationId) {
+  return {
+    simulationStatus: 'ACTIVE',
+    currentActivity: 'DOOM_SCROLLING',
+    energy: 75,
+    happiness: 60,
+    timeElapsed: 1,
+    studyHoursCompleted: 10
+  };
+}
+
 // returns a list of all simulation instances belonging to a given student with summary info
 function simulationsList(studentId) {
   return {
