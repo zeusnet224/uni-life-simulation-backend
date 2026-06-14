@@ -12,26 +12,53 @@
 // Replace the empty object below with your data structure design
 // Include at least ONE example user and ONE example simulation
 let data = {
-  // Add your data structure here
+  users: [
+    {
+      studentId: string,
+      password: string,
+      nameFirst: string,
+      nameLast: string
+    }
+  ],
+
+  simulations: [
+    {
+      simulationId: number,
+      simulationStatus: string,
+      currentActivity: string,
+      energy: number,
+      happiness: number,
+      timeElapsed: number,
+      studyHoursCompleted: number,
+    }
+  ],
 }
 
-let courses = [
-  {
-  courseId: string,
-  name: string,
-  courseDetails: string
-  }
-]
-
-let exams = [
-  {
-    examId: string,
+let universeData = {
+  courses = [
+    {
     courseId: string,
     name: string,
-    requiredStudyHours: number,
-    examDetails: string
-  }
-]
+    courseDetails: string,
+    courseStatus: string
+    }
+  ],
+
+  exams = [
+    {
+      examId: string,
+      courseId: string,
+      name: string,
+      requiredStudyHours: number,
+      examDetails: string,
+      studyProgress: number,
+      attempt: string
+      examStatus: string,
+      examScore: number,
+      examOutcome: string
+    }
+  ]
+}
 ```
 ## Notes
 
