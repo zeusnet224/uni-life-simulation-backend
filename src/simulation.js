@@ -17,10 +17,10 @@ function simulationStatus(studentId, simulationId) {
         simulations: [
             {
                 simulationStatus: 'ACTIVE', 
-                currentActivity: 'STUDYING',
-                energy: 2,
-                happiness: 5,
-                timeElapsed: 20
+                currentActivity: 'DOOM_SCROLLING',
+                energy: 75,
+                happiness: 60,
+                timeElapsed: 1
             }
         ]
     }
