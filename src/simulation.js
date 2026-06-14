@@ -12,3 +12,16 @@ function simulationStatusFinal(studentId, simulationId) {
         ]
     }
 }
+function simulationStatus(studentId, simulationId) {
+    return {
+        simulations: [
+            {
+                simulationStatus: 'ACTIVE', 
+                currentActivity: 'STUDYING',
+                energy: 2,
+                happiness: 5,
+                timeElapsed: 20
+            }
+        ]
+    }
+}
