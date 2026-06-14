@@ -2,7 +2,7 @@ function examStudyProgress(simulationId, studyHoursCompleted) {
     return {
         exams: [
             {
-                examId: E2-COMP1531,
+                examId: 'E2-COMP1531',
                 studyProgress: 60
             }
         ]
@@ -25,9 +25,21 @@ function examPreventAttempt(simulationId, attempt) {
     return {
         exams: [
             {
-                examStatus: 'ALREADY_ATTEMPTED',
-                examOutcome: 'PASSED'
+                examId: 'E2-COMP1521',
+                examStatus: 'ALREADY_ATTEMPTED'
             }
         ]
     }
 }
+
+function examPreventAttempt(simulationId, attempt) {
+    return {
+        exams: [
+            {
+                examId: 'E2-COMP1521',
+                examStatus: 'ALREADY_ATTEMPTED'
+            }
+        ]
+    }
+}
+
