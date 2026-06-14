@@ -6,16 +6,13 @@ function simulationCreate(studentId, universeData) {
 }
 
 function simulationStatus(studentId, simulationId) {
-    return {
-            {
-                simulationStatus: 'ACTIVE', 
-                currentActivity: 'DOOM_SCROLLING',
-                energy: 75,
-                happiness: 60,
-                timeElapsed: 1
-            }
-        ]
-    }
+  return {
+    simulationStatus: 'ACTIVE',
+    currentActivity: 'DOOM_SCROLLING',
+    energy: 75,
+    happiness: 60,
+    timeElapsed: 1,
+  };
 }
 
 // returns a list of all simulation instances belonging to a given student with summary info
