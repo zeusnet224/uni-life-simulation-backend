@@ -14,14 +14,10 @@ function simulationStatusFinal(studentId, simulationId) {
 }
 function simulationStatus(studentId, simulationId) {
     return {
-        simulations: [
-            {
-                simulationStatus: 'ACTIVE', 
-                currentActivity: 'DOOM_SCROLLING',
-                energy: 75,
-                happiness: 60,
-                timeElapsed: 1
-            }
-        ]
+        simulationStatus: 'ACTIVE', 
+        currentActivity: 'DOOM_SCROLLING',
+        energy: 75,
+        happiness: 60,
+        timeElapsed: 1
     }
 }
