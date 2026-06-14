@@ -12,26 +12,52 @@
 // Replace the empty object below with your data structure design
 // Include at least ONE example user and ONE example simulation
 let data = {
-  // Add your data structure here
+  users: [
+    {
+      studentId: 'z568910',
+      password: 'ILoveComp1531',
+      nameFirst: 'John',
+      nameLast: 'Smith'
+    }
+  ],
+
+  simulations: [
+    {
+      simulationId: '10471',
+      simulationStatus: 'ACTIVE',
+      currentActivity: 'STUDYING',
+      energy: 10,
+      happiness: 6,
+      timeElapsed: 100,
+      studyHoursCompleted: 2
+    }
+  ],
 }
 
-let courses = [
-  {
-  courseId: string,
-  name: string,
-  courseDetails: string
-  }
-]
+let universeData = {
+  courses = [
+    {
+    courseId: 'COMP1531',
+    name: 'Software Engineering Fundamentals',
+    courseDetails: 'Software engineering principles',
+    courseStatus: 'ACTIVE'
+    }
+  ],
 
-let exams = [
-  {
-    examId: string,
-    courseId: string,
-    name: string,
-    requiredStudyHours: number,
-    examDetails: string
-  }
-]
+  exams = [
+    {
+      examId: 'E2-COMP1531',
+      courseId: 'COMP1531',
+      name: 'Final Exam',
+      requiredStudyHours: 20,
+      examDetails: 'Held in Flute Lab',
+      studyProgress: 2,
+      examStatus: 'NOT_ATTEMPTED',
+      examScore: 0,
+      examOutcome: 'NIL'
+    }
+  ]
+}
 ```
 ## Notes
 

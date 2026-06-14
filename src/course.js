@@ -49,3 +49,14 @@ function courseRetrieveExamDetails(examId) {
         ]
     }
 }
+
+function courseCompletion(examId, examOutcome, courseId) {
+    return {
+        courses: [
+            {
+                courseId: 'COMP1531',
+                courseStatus: 'COMPLETED'
+            }
+        ]
+    }
+}
