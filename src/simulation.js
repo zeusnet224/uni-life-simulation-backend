@@ -1,17 +1,3 @@
-function simulationStatusFinal(studentId, simulationId) {
-    return {
-        simulations: [
-            {
-                simulationStatus: 'GRADUATED', 
-                currentActivity: 'SLEEPING',
-                energy: 67,
-                happiness: 50,
-                timeElapsed: 1469,
-                studyHoursCompleted: 500
-            }
-        ]
-    }
-}
 
 
 // start a new simulation instance for the authenticated student
@@ -35,4 +21,18 @@ function simulationsList(studentId) {
   };
 }
 
-module.exports = { simulationCreate, simulationStatusFinal, simulationsList };
+module.exports = { simulationCreate, simulationStatus, simulationsList };
+
+function simulationStatus(studentId, simulationId) {
+    return {
+        simulations: [
+            {
+                simulationStatus: 'ACTIVE', 
+                currentActivity: 'DOOM_SCROLLING',
+                energy: 75,
+                happiness: 60,
+                timeElapsed: 1
+            }
+        ]
+    }
+}

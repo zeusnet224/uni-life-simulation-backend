@@ -11,3 +11,5 @@ function authLogin(studentId, password) {
         studentId: 'z5555555',
     };
 }
+
+module.exports = { authRegister, authLogin };
