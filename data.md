@@ -8,9 +8,6 @@
 ## Data Structure
 
 ```javascript
-// TODO: Design your data structure here
-// Replace the empty object below with your data structure design
-// Include at least ONE example user and ONE example simulation
 let data = {
   users: [
     {
@@ -23,38 +20,41 @@ let data = {
 
   simulations: [
     {
-      simulationId: '10471',
+      simulationId: 10471,
+      studentId: 'z568910',
       simulationStatus: 'ACTIVE',
       currentActivity: 'STUDYING',
       energy: 10,
       happiness: 6,
       timeElapsed: 100,
-      studyHoursCompleted: 2
-    }
-  ],
-}
+      lastAction: {
+        action: 'STUDYING',
+        duration: 2,
+      },
+      universeData: {
+        courses: [
+          {
+            courseId: 'COMP1531',
+            name: 'Software Engineering Fundamentals',
+            courseStatus: 'IN_PROGRESS'
+          }
+        ],
 
-let universeData = {
-  courses = [
-    {
-    courseId: 'COMP1531',
-    name: 'Software Engineering Fundamentals',
-    courseDetails: 'Software engineering principles',
-    courseStatus: 'ACTIVE'
-    }
-  ],
-
-  exams = [
-    {
-      examId: 'E2-COMP1531',
-      courseId: 'COMP1531',
-      name: 'Final Exam',
-      requiredStudyHours: 20,
-      examDetails: 'Held in Flute Lab',
-      studyProgress: 2,
-      examStatus: 'NOT_ATTEMPTED',
-      examScore: 0,
-      examOutcome: 'NIL'
+        exams = [
+          {
+            examId: 'E2-COMP1531',
+            courseId: 'COMP1531',
+            name: 'Final Exam',
+            requiredStudyHours: 20,
+            studyHoursCompleted: 2,
+            examDetails: 'Held in Flute Lab',
+            studyProgress: 2,
+            examStatus: 'NOT_ATTEMPTED',
+            examScore: 0,
+            examOutcome: 'NIL'
+          }
+        ]
+      }
     }
   ]
 }
