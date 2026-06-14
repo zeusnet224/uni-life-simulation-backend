@@ -17,11 +17,11 @@ function simulationStatus(studentId, simulationId) {
 
 function simulationStatusFinal(studentId, simulationId) {
   return {
-    simulationStatus: 'ACTIVE',
-    currentActivity: 'DOOM_SCROLLING',
-    energy: 75,
-    happiness: 60,
-    timeElapsed: 1,
+    simulationStatus: 'GRADUATED',
+    currentActivity: 'SLEEPING',
+    energy: 65,
+    happiness: 40,
+    timeElapsed: 5,
     studyHoursCompleted: 10
   };
 }
