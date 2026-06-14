@@ -14,22 +14,22 @@
 let data = {
   users: [
     {
-      studentId: string,
-      password: string,
-      nameFirst: string,
-      nameLast: string
+      studentId: 'z568910',
+      password: 'ILoveComp1531',
+      nameFirst: 'John',
+      nameLast: 'Smith'
     }
   ],
 
   simulations: [
     {
-      simulationId: number,
-      simulationStatus: string,
-      currentActivity: string,
-      energy: number,
-      happiness: number,
-      timeElapsed: number,
-      studyHoursCompleted: number,
+      simulationId: '10471',
+      simulationStatus: 'ACTIVE',
+      currentActivity: 'STUDYING',
+      energy: 10,
+      happiness: 6,
+      timeElapsed: 100,
+      studyHoursCompleted: 2
     }
   ],
 }
@@ -37,25 +37,24 @@ let data = {
 let universeData = {
   courses = [
     {
-    courseId: string,
-    name: string,
-    courseDetails: string,
-    courseStatus: string
+    courseId: 'COMP1531',
+    name: 'Software Engineering Fundamentals',
+    courseDetails: 'Software engineering principles',
+    courseStatus: 'ACTIVE'
     }
   ],
 
   exams = [
     {
-      examId: string,
-      courseId: string,
-      name: string,
-      requiredStudyHours: number,
-      examDetails: string,
-      studyProgress: number,
-      attempt: string
-      examStatus: string,
-      examScore: number,
-      examOutcome: string
+      examId: 'E2-COMP1531',
+      courseId: 'COMP1531',
+      name: 'Final Exam',
+      requiredStudyHours: 20,
+      examDetails: 'Held in Flute Lab',
+      studyProgress: 2,
+      examStatus: 'NOT_ATTEMPTED',
+      examScore: 0,
+      examOutcome: 'NIL'
     }
   ]
 }
