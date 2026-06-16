@@ -1,0 +1,65 @@
+
+{
+    // COMP1531 JavaScript & TypeScript Format Rules
+    // ===============
+
+    "files.trimTrailingWhitespace": true,
+    "js/ts.preferences.autoImportFileExcludePatterns": [
+        "node:test"
+    ],
+    "js/ts.updateImportsOnFileMove.enabled": "always",
+
+    "[javascript]": {
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "vscode.typescript-language-features",
+        "editor.rulers": [
+            100
+        ],
+    },
+
+    "[typescript]": {
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "vscode.typescript-language-features",
+        "editor.rulers": [
+            100
+        ],
+    },
+
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+
+
+    // Disable AI Features
+    // ===============
+
+    // The (supposed) single off switch, which doesn't actually work
+    "chat.disableAIFeatures": true,
+
+    // Turn off the chat panel, and all of the background services for AI slop
+    // that I don't want to use
+    "chat.agent.enabled": false,
+    "chat.extensionTools.enabled": false,
+    "github.copilot.chat.copilotDebugCommand.enabled": false,
+    "github.copilot.chat.reviewAgent.enabled": false,
+    "github.copilot.chat.reviewSelection.enabled": false,
+    "github.copilot.enable": false,
+    "chat.emptyChatState.enabled": false,
+    "chat.mcp.access": "none",
+    "chat.commandCenter.enabled": false,
+
+    // Hide AI prompts from empty window and new terminal sessions and files
+    "workbench.editor.empty.hint": "hidden",
+    "terminal.integrated.initialHint": false,
+
+    // Data analysis tool has AI prompts
+    "dataWrangler.experiments.copilot.enabled": false,
+
+    // Remote SSH has AI prompts
+    "remote.SSH.experimental.chat": false,
+
+    // GitHub extension adds AI
+    "githubPullRequests.experimental.chat": false,
+    // And so does GitLab
+    "gitlab.duoChat.enabled": false,
+}
