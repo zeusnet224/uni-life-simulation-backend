@@ -1,14 +1,10 @@
 function courseRetrieveCourses(simulationId) {
     return {
-        courses: [
-            {
-                courseId: 'COMP1531',
-                name: 'Software Engineering Fundamentals',
-                courseDetails: 'Software engineering principles',
-                courseStatus: 'ACTIVE'
-            }
-        ]
-    }
+        courseId: 'COMP1531',
+        name: 'Software Engineering Fundamentals',
+        courseDetails: 'Software engineering principles',
+        courseStatus: 'ACTIVE'
+    };
 }
 
 function courseRetrieveExams(simulationId) {
@@ -23,10 +19,10 @@ function courseRetrieveExams(simulationId) {
                 studyProgress: 2,
                 examStatus: 'NOT_ATTEMPTED',
                 examScore: 0,
-                examOutcome: 'NIL'
+                examOutcome: 'NIL',
             }
         ]
-    }
+    };
 }
 
 function courseRetrieveCourseDetails(courseId) {
@@ -36,10 +32,10 @@ function courseRetrieveCourseDetails(courseId) {
                 courseId: 'COMP1531',
                 name: 'Software Engineering Fundamentals',
                 courseDetails: 'Software engineering principles',
-                courseStatus: 'ACTIVE'
+                courseStatus: 'ACTIVE',
             }
         ]
-    }
+    };
 }
 
 function courseRetrieveExamDetails(examId) {
@@ -54,19 +50,20 @@ function courseRetrieveExamDetails(examId) {
                 studyProgress: 2,
                 examStatus: 'NOT_ATTEMPTED',
                 examScore: 0,
-                examOutcome: 'NIL'
+                examOutcome: 'NIL',
             }
         ]
-    }
+    };
 }
 
-function courseCompletion(examId, examOutcome, courseId) {
+// Takes in a courseId and checks the outcome of all 3 exams within a course
+function courseCompletion(courseId, studentId) {
     return {
         courses: [
             {
                 courseId: 'COMP1531',
-                courseStatus: 'COMPLETED'
+                courseStatus: 'COMPLETED',
             }
         ]
-    }
+    };
 }

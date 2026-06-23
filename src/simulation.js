@@ -22,7 +22,7 @@ function simulationStatusFinal(studentId, simulationId) {
     energy: 65,
     happiness: 40,
     timeElapsed: 5,
-    studyHoursCompleted: 10
+    studyHoursCompleted: 10,
   };
 }
 
@@ -40,7 +40,7 @@ function simulationsList(studentId) {
   };
 }
 
-// Given a valid action and duration, the interface allows the caller to apply 
+// Given a valid action and duration, the interface allows the caller to apply
 // the action to a simulation and update the relevant state.
 function simulationApplyAction(studentID, simulationID, currentActivity, timeElapsed, examID) {
   return {
@@ -62,7 +62,7 @@ function examGetStudyAction(studentId, simulationId) {
   }
 }
 
-// The interface makes it possible to determine which action was 
+// The interface makes it possible to determine which action was
 // applied and how long the action lasted
 function simulationGetLastAction(studentId, simulationId) {
   return {
@@ -72,7 +72,7 @@ function simulationGetLastAction(studentId, simulationId) {
   }
 }
 
-// The interface makes it possible to observe that no further 
+// The interface makes it possible to observe that no further
 // actions should be applied to that simulation
 function simulationGetconcludingNotification(studentId, simulationId) {
   return {
