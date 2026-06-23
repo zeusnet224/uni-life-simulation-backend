@@ -6,6 +6,18 @@ function simulationCreate(studentId, universeData) {
 }
 
 function simulationStatus(studentId, simulationId) {
+  const student = data.simulations.find(sim => sim.studentId === studentId);
+  if (!student) {
+    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
+  }
+
+  const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+  if (!simulation) {
+    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+  } else if (simulation.simulationId !== simulationId ) {
+    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
+  }
+
   return {
     simulationStatus: 'ACTIVE',
     currentActivity: 'DOOM_SCROLLING',
