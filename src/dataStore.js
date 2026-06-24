@@ -8,6 +8,12 @@ function getData() {
   return data;
 }
 
+
+let data = {
+  users: [],
+  simulations: [],
+}
+
 /**
  * Load universe data from a JSON file path and return it as a JavaScript object.
  * This function is useful for testing
