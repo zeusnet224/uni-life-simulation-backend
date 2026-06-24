@@ -3,15 +3,14 @@
 
 import fs from 'fs';
 
-// Use getData() to access the data
-function getData() {
-  return data;
-}
-
-
 let data = {
   users: [],
   simulations: [],
+}
+
+// Use getData() to access the data
+function getData() {
+  return data;
 }
 
 /**
