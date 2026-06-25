@@ -3,6 +3,11 @@
 
 import fs from 'fs';
 
+let data = {
+  users: [],
+  simulations: [],
+}
+
 // Use getData() to access the data
 function getData() {
   return data;
