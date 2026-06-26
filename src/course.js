@@ -1,72 +1,101 @@
+import { getData } from './dataStore.js';
+
 function courseRetrieveCourses(simulationId) {
-    return {
-        courses: [
-            {
-                courseId: 'COMP1531',
-                name: 'Software Engineering Fundamentals',
-                courseDetails: 'Software engineering principles',
-                courseStatus: 'ACTIVE'
-            }
-        ]
+    const data = getData();
+
+    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+    if (!simulation) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
     }
+
+    return {
+        courses: simulation.courses.map(course => ({
+            courseId: course.courseId,
+            name: course.name
+        }))
+    };
 }
 
 function courseRetrieveExams(simulationId) {
-    return {
-        exams: [
-            {
-                examId: 'E2-COMP1531',
-                courseId: 'COMP1531',
-                name: 'Final Exam',
-                requiredStudyHours: 20,
-                examDetails: 'Held in Flute Lab',
-                studyProgress: 2,
-                examStatus: 'NOT_ATTEMPTED',
-                examScore: 0,
-                examOutcome: 'NIL'
-            }
-        ]
+    //all exams (not just the users)
+    const data = getData();
+
+    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+    if (!simulation) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
     }
+
+    return {
+        exams: simulation.exams.map(exam => ({
+            examId: exam.examId,
+            courseId: exam.courseId,
+            name: exam.name,
+            requiredStudyHours: exam.requiredStudyHours
+        }))
+    };
 }
 
 function courseRetrieveCourseDetails(courseId) {
+    const data = getData();
+
+    const course = simulation.courses.find(c => c.courseId === courseId);
+    if (!course) {
+        return { error: 'INVALID_COURSE', message: 'Course ID does not exist' };
+    }
+
     return {
-        courses: [
+        course: [
             {
-                courseId: 'COMP1531',
-                name: 'Software Engineering Fundamentals',
-                courseDetails: 'Software engineering principles',
-                courseStatus: 'ACTIVE'
+                courseId: course.courseId,
+                name: course.name,
+                courseDetails: course.courseDetails,
+                courseStatus: course.courseStatus
             }
         ]
-    }
+    };
 }
 
 function courseRetrieveExamDetails(examId) {
+    const data = getData();
+
+    const exam = simulation.exams.find(e => e.examId === examId);
+    if (!exam) {
+        return { error: 'INVALID_EXAM', message: 'Exam ID does not exist' };
+    }
+
     return {
-        exams: [
+        exam: [
             {
-                examId: 'E2-COMP1531',
-                courseId: 'COMP1531',
-                name: 'Final Exam',
-                requiredStudyHours: 20,
-                examDetails: 'Held in Flute Lab',
-                studyProgress: 2,
-                examStatus: 'NOT_ATTEMPTED',
-                examScore: 0,
-                examOutcome: 'NIL'
+                examId: exam.examId,
+                courseId: exam.courseId,
+                name: exam.name,
+                requiredStudyHours: exam.requiredStudyHours
             }
         ]
-    }
+    };
 }
 
-function courseCompletion(examId, examOutcome, courseId) {
+// Takes in a courseId and checks the outcome of all 3 exams within a course
+function courseCompletion(courseId, studentId) {
+
+    const data = getData();
+
+    const user = data.users.find(u => u.studentId === studentId);
+    if (!user) {
+      return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
+    }
+
+    const course = simulation.courses.find(c => c.courseId === courseId);
+    if (!user) {
+      return { error: 'INVALID_COURSE', message: 'Course does not exist' };
+    }
+
     return {
-        courses: [
+        course: [
             {
-                courseId: 'COMP1531',
-                courseStatus: 'COMPLETED'
+                courseId: course.courseId,
+                courseStatus: course.courseStatus,
             }
         ]
-    }
+    };
 }
