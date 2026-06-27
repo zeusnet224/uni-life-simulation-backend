@@ -3,14 +3,28 @@
 
 import fs from 'fs';
 
-let data = {
-  users: [],
-  simulations: [],
+function createInitialData() {
+  return {
+    users: [],
+    simulations: [],
+  };
 }
+
+let data = createInitialData();
 
 // Use getData() to access the data
 function getData() {
   return data;
+}
+
+function clearData() {
+  const initialData = createInitialData();
+
+  for (const key of Object.keys(data)) {
+    delete data[key];
+  }
+
+  Object.assign(data, initialData);
 }
 
 /**
@@ -71,6 +85,5 @@ Example usage
   console.log(store) # Prints { 'names': ['Hayden', 'Tam', 'Rani', 'Giuliana', 'Jake'] }
 */
 
-const data = {};
 
-export { getData, loadData };
+export { getData, loadData, clearData };
