@@ -3,11 +3,6 @@
 
 import fs from 'fs';
 
-let data = {
-  users: [],
-  simulations: [],
-}
-
 // Use getData() to access the data
 function getData() {
   return data;
@@ -71,6 +66,11 @@ Example usage
   console.log(store) # Prints { 'names': ['Hayden', 'Tam', 'Rani', 'Giuliana', 'Jake'] }
 */
 
-const data = {};
+const data = {
+  users: [],
+  simulations: [],
+};
+
+
 
 export { getData, loadData };

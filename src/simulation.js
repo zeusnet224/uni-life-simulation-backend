@@ -1,3 +1,5 @@
+import { getData } from './dataStore.js';
+
 // start a new simulation instance for the authenticated student
 function simulationCreate(studentId, universeData) {
   return {
@@ -6,7 +8,8 @@ function simulationCreate(studentId, universeData) {
 }
 
 function simulationStatus(studentId, simulationId) {
-  const student = data.simulations.find(sim => sim.studentId === studentId);
+  const data = getData();
+  const student = data.users.find(user => user.studentId === studentId);
   if (!student) {
     return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
   }
@@ -14,16 +17,16 @@ function simulationStatus(studentId, simulationId) {
   const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
   if (!simulation) {
     return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  } else if (simulation.simulationId !== simulationId ) {
+  } else if (simulation.studentId !== studentId ) {
     return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
   }
 
   return {
-    simulationStatus: 'ACTIVE',
-    currentActivity: 'DOOM_SCROLLING',
-    energy: 75,
-    happiness: 60,
-    timeElapsed: 1,
+    simulationStatus: simulation.simulationStatus,
+    currentActivity: simulation.currentActivity,
+    energy: simulation.energy,
+    happiness: simulation.happiness,
+    timeElapsed: simulation.timeElapsed,
   };
 }
 
