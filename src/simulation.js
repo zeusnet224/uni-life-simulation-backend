@@ -2,8 +2,73 @@ import { getData } from './dataStore.js';
 
 // start a new simulation instance for the authenticated student
 function simulationCreate(studentId, universeData) {
+  const data = getData();
+
+  if (typeof studentId !== 'string' || studentId.trim() === '') {
+    return { error: 'INVALID_STUDENT_ID', message: 'Student ID must be a non-empty string' };
+  }
+
+  if (data.users.length > 0 && !data.users.some(user => user.studentId === studentId)) {
+    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
+  }
+
+  if (universeData === null || typeof universeData !== 'object' || Array.isArray(universeData)) {
+    return { error: 'INVALID_UNIVERSE', message: 'Universe data must be an object' };
+  }
+
+  if (universeData.error) {
+    return { error: 'INVALID_UNIVERSE', message: universeData.message || 'Universe data is invalid' };
+  }
+
+  if (!Array.isArray(universeData.courses)) {
+    return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
+  }
+
+  const exams = Array.isArray(universeData.exams)
+    ? universeData.exams
+    : universeData.courses.flatMap(course => {
+        if (!Array.isArray(course.exams)) {
+          return [];
+        }
+
+        return course.exams.map(exam => ({
+          ...exam,
+          courseId: exam.courseId || course.courseId,
+        }));
+      });
+
+  const simulationId = data.simulations.reduce((maxId, simulation) => {
+    return Math.max(maxId, simulation.simulationId);
+  }, 0) + 1;
+
+  data.simulations.push({
+    simulationId,
+    studentId,
+    simulationStatus: 'ACTIVE',
+    currentActivity: 'DOOM_SCROLLING',
+    energy: 75,
+    happiness: 60,
+    timeElapsed: 0,
+    lastAction: null,
+    universeData: {
+      ...universeData,
+      courses: universeData.courses.map(course => ({
+        ...course,
+        courseStatus: course.courseStatus || 'ACTIVE',
+      })),
+      exams: exams.map(exam => ({
+        ...exam,
+        studyHoursCompleted: exam.studyHoursCompleted || 0,
+        studyProgress: exam.studyProgress || 0,
+        examStatus: exam.examStatus || 'NOT_ATTEMPTED',
+        examScore: exam.examScore || 0,
+        examOutcome: exam.examOutcome || 'NIL',
+      })),
+    },
+  });
+
   return {
-    simulationId: 1,
+    simulationId,
   };
 }
 
@@ -132,7 +197,7 @@ function simulationGetconcludingNotification(studentId, simulationId) {
   }
 }
 
-module.exports = { simulationCreate, simulationStatus, simulationsList, simulationApplyAction, examGetStudyAction, simulationGetLastAction, simulationGetconcludingNotification };
+export { simulationCreate, simulationStatus, simulationsList, simulationApplyAction, examGetStudyAction, simulationGetLastAction, simulationGetconcludingNotification };
 
 
 
