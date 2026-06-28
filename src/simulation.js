@@ -24,10 +24,11 @@ function simulationCreate(studentId, universeData) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
   }
 
-
-  // Generate the next simulation ID by finding the largest existing ID and adding one.
+  // Use empty arrays when optional universe sections are missing.
   const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
   const societies = Array.isArray(universeData.societies) ? universeData.societies : [];
+
+  // Generate the next simulation ID by finding the largest existing ID and adding one.
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
@@ -53,16 +54,17 @@ function simulationCreate(studentId, universeData) {
       })),
 
       // Ensure every exam has the progress fields needed by study and exam-related functions.
-      exams: Array.isArray(universeData.exams)
-        ? universeData.exams.map(exam => ({
-            ...exam,
-            studyHoursCompleted: exam.studyHoursCompleted || 0,
-            studyProgress: exam.studyProgress || 0,
-            examStatus: exam.examStatus || 'NOT_ATTEMPTED',
-            examScore: exam.examScore || 0,
-            examOutcome: exam.examOutcome || 'NIL',
-          }))
-        : [],
+      exams: exams.map(exam => ({
+        ...exam,
+        studyHoursCompleted: exam.studyHoursCompleted || 0,
+        studyProgress: exam.studyProgress || 0,
+        examStatus: exam.examStatus || 'NOT_ATTEMPTED',
+        examScore: exam.examScore || 0,
+        examOutcome: exam.examOutcome || 'NIL',
+      })),
+
+      // Keep society data in the simulation so society-related functions can use it later.
+      societies,
     },
   });
 
@@ -71,6 +73,7 @@ function simulationCreate(studentId, universeData) {
   };
 }
 
+// Get the current status and stats of a specific simulation.
 function simulationStatus(studentId, simulationId) {
   const data = getData();
   const student = data.users.find(user => user.studentId === studentId);

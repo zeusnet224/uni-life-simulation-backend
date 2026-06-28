@@ -4,7 +4,7 @@ Note: you may refer to your group contract during this reflection. It is natural
 
 | zID | Name |
 | --- | ---- |
-|     |      |
+| z5684911 | Katrina Chung |
 |     |      |
 |     |      |
 |     |      |
@@ -12,8 +12,8 @@ Note: you may refer to your group contract during this reflection. It is natural
 
 ## Who worked on what functions for this iteration?
 
--
--
+- Athena: Implementing functions for SimulationStatus, courseRetrieveCourses, courseRetrieveExams, courseRetrieveCourseDetails, courseRetrieveExamDetails,courseCompletion
+- Katrina: Implementing functions for societyAction, societyJoin, societyAttend, and tests for StimulationStatus, courseRetrieveCourses, courseRetrieveExams,   courseRetrieveCourseDetails, courseRetrieveExamDetails,courseCompletion, societyAction, societyJoin, societyAttend
 -
 -
 -
