@@ -1,4 +1,5 @@
 import { getData } from './dataStore.js';
+import { checkWinLoseConditions } from './action.js';
 
 // Returns the study progress from a simulation
 /*
@@ -10,22 +11,35 @@ import { getData } from './dataStore.js';
 function examStudyProgress(simulationId, studentId, examId) {
     const data = getData();
 
+    // check student exists first
+    const student = data.users.find(u => u.studentId === studentId);
+    if (!student) {
+        return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not refer to a registered student' };
+    }
+
+    // check simulation exists
     const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
     if (!simulation) {
         return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
     }
 
+    // check simulation belongs to this student
+    if (simulation.studentId !== studentId) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to the given student' };
+    }
+
+    // check exam exists in this simulation
     const exam = simulation.exams.find(e => e.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
 
     return {
-        examId: exam.examId,
-        studyProgress: exam.studyHoursCompleted,
-        requiredStudyHours: exam.requiredStudyHours,
-        //status for if study progress hours has passed required hours (whether or not they will pass)
-        ready: (exam.studyProgress >= exam.requiredStudyHours)
+        examId:              exam.examId,
+        studyHoursCompleted: exam.studyHoursCompleted,  // fixed: was called studyProgress
+        requiredStudyHours:  exam.requiredStudyHours,
+        // ready uses studyHoursCompleted not studyProgress (studyProgress field doesn't exist)
+        ready: exam.studyHoursCompleted >= exam.requiredStudyHours,
     };
 }
 
@@ -34,61 +48,84 @@ function examStudyProgress(simulationId, studentId, examId) {
 function examAttemptRecord(examId, simulationId, studentId) {
     const data = getData();
 
+    // check student exists first (correct error order)
+    const user = data.users.find(u => u.studentId === studentId);
+    if (!user) {
+        return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
+    }
+
+    // check simulation exists
     const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
     if (!simulation) {
         return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
     }
 
-    const user = data.users.find(u => u.studentId === studentId);
-    if (!user) {
-      return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
+    // check simulation belongs to this student
+    if (simulation.studentId !== studentId) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to the given student' };
     }
 
-    const exam = simulation.exams.find(sim => sim.examId === examId);
+    // simulation must be ACTIVE
+    if (simulation.simulationStatus !== 'ACTIVE') {
+        return { error: 'SIMULATION_ENDED', message: 'Cannot attempt exams in a completed simulation' };
+    }
+
+    // check exam exists
+    const exam = simulation.exams.find(e => e.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
 
-    if (exam.examStatus === "ATTEMPTED") {
+    // prevent re-attempt
+    if (exam.examStatus === 'ATTEMPTED') {
         return { error: 'ALREADY_ATTEMPTED', message: 'You have already attempted this exam'};
     }
-    exam.examStatus = "ATTEMPTED";
 
-    const passed = exam.studyHoursCompleted >= exam.requiredStudyHours;
-    if (passed) {
+    // apply 30 energy cost — clamped to 0
+    simulation.energy = simulation.energy - 30;
+    if (simulation.energy < 0) {
+        simulation.energy = 0;
+    }
+
+    // determine pass or fail
+    exam.examStatus = 'ATTEMPTED';
+    if (exam.studyHoursCompleted >= exam.requiredStudyHours) {
         exam.examOutcome = 'PASS';
     } else {
         exam.examOutcome = 'FAIL';
     }
 
-    //energy cost -30
-    simulation.energy = simulation.energy - 30;
-
-    //check if all the exams have been completed and update courseStatus
+    // update course status based on all exam outcomes
     const courseExams = simulation.exams.filter(e => e.courseId === exam.courseId);
-
-    //get course to update its status
     const course = simulation.courses.find(c => c.courseId === exam.courseId);
 
-    const allAttempted = courseExams.every(e => e.examStatus !== "NOT_ATTEMPTED");
-    if (allAttempted) {
-        const totalExams = courseExams.length;
-        const totalPassed = courseExams.filter(e => e.isPassed === true).length;
+    let totalPassed = 0;
+    let totalFailed = 0;
+    let totalAttempted = 0;
 
-        // PASSED: all attempted AND at least 50% passed
-        if (totalPassed / totalExams >= 0.5) {
-            course.courseStatus = 'PASSED';
-        } else {
-            course.courseStatus = 'FAILED';
-        }
+    for (const e of courseExams) {
+        if (e.examOutcome === 'PASS') totalPassed++;
+        if (e.examOutcome === 'FAIL') totalFailed++;
+        if (e.examStatus === 'ATTEMPTED') totalAttempted++;
     }
+
+    // 2 or more failures means course is unrecoverable
+    if (totalFailed >= 2) {
+        course.courseStatus = 'FAILED';
+    } else if (totalAttempted === courseExams.length && totalPassed >= 2) {
+        // all attempted AND at least 2 passed means course passed
+        course.courseStatus = 'PASSED';
+    }
+
+    // check win/lose conditions immediately after exam
+    checkWinLoseConditions(simulation);
 
     return {
         exam: [
             {
-                examId: exam.examId,
-                name: exam.name,
-                examStatus: exam.examStatus,
+                examId:      exam.examId,
+                name:        exam.name,
+                examStatus:  exam.examStatus,
                 examOutcome: exam.examOutcome,
             }
         ]
@@ -127,3 +164,5 @@ function examPreventAttempt(examId, simulationId, studentId) {
         ]
     };
 }
+
+export { examStudyProgress, examAttemptRecord, examPreventAttempt };
