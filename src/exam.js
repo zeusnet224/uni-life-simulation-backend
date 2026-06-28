@@ -1,12 +1,11 @@
 import { getData } from './dataStore.js';
 import { checkWinLoseConditions } from './action.js';
 
-// Returns the study progress from a simulation
-/*
-- Takes exam from a given simulation
-- Does not advance timeElapsed or change currentActivity
-- Pass condition: studyHoursCompleted >= requiredStudyHours
-*/
+// Returns the study progress for a specific exam in a simulation.
+// This is a read-only function — it does not change timeElapsed or currentActivity.
+// Parameters: simulationId, studentId, examId
+// Returns: { examId, studyHoursCompleted, requiredStudyHours, ready }
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_EXAM
 
 function examStudyProgress(simulationId, studentId, examId) {
     const data = getData();
@@ -44,50 +43,56 @@ function examStudyProgress(simulationId, studentId, examId) {
 }
 
 
-// Takes in a studentId and examId and records the attempt for this exam
+// Records an exam attempt, applies the 30 energy cost, determines pass/fail,
+// updates course status, and checks win/lose conditions immediately.
+// Pass condition: studyHoursCompleted >= requiredStudyHours
+// Taking an exam does NOT advance timeElapsed or change currentActivity.
+// Parameters: examId, simulationId, studentId
+// Returns: { exam: [{ examId, name, examStatus, examOutcome }] }
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, SIMULATION_ENDED, INVALID_EXAM, ALREADY_ATTEMPTED
 function examAttemptRecord(examId, simulationId, studentId) {
     const data = getData();
 
-    // check student exists first (correct error order)
+// check student exists first (correct error order)
     const user = data.users.find(u => u.studentId === studentId);
     if (!user) {
         return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
     }
 
-    // check simulation exists
+// check simulation exists
     const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
     if (!simulation) {
         return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
     }
 
-    // check simulation belongs to this student
+// Check simulation belongs to this student
     if (simulation.studentId !== studentId) {
         return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to the given student' };
     }
 
-    // simulation must be ACTIVE
+// Simulation must be ACTIVE
     if (simulation.simulationStatus !== 'ACTIVE') {
         return { error: 'SIMULATION_ENDED', message: 'Cannot attempt exams in a completed simulation' };
     }
 
-    // check exam exists
+// Check exam exists
     const exam = simulation.universeData.exams.find(sim => sim.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
 
-    // prevent re-attempt
+    // Prevent re-attempt
     if (exam.examStatus === 'ATTEMPTED') {
         return { error: 'ALREADY_ATTEMPTED', message: 'You have already attempted this exam'};
     }
 
-    // apply 30 energy cost — clamped to 0
+// apply 30 energy cost — clamped to 0
     simulation.energy = simulation.energy - 30;
     if (simulation.energy < 0) {
         simulation.energy = 0;
     }
 
-    // determine pass or fail
+// Determine pass or fail
     exam.examStatus = 'ATTEMPTED';
     if (exam.studyHoursCompleted >= exam.requiredStudyHours) {
         exam.examOutcome = 'PASS';
@@ -95,7 +100,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
         exam.examOutcome = 'FAIL';
     }
 
-    // update course status based on all exam outcomes
+// Update course status based on all exam outcomes
     const courseExams = simulation.universeData.exams.filter(e => e.courseId === exam.courseId);
     const course = simulation.universeData.courses.find(c => c.courseId === exam.courseId);
 
@@ -109,7 +114,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
         if (e.examStatus === 'ATTEMPTED') totalAttempted++;
     }
 
-    // 2 or more failures means course is unrecoverable
+// 2 or more failures means course is unrecoverable
     if (totalFailed >= 2) {
         course.courseStatus = 'FAILED';
     } else if (totalAttempted === courseExams.length && totalPassed >= 2) {
@@ -117,7 +122,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
         course.courseStatus = 'PASSED';
     }
 
-    // check win/lose conditions immediately after exam
+// check win/lose conditions immediately after exam
     checkWinLoseConditions(simulation);
 
     return {
@@ -132,9 +137,11 @@ function examAttemptRecord(examId, simulationId, studentId) {
     };
 }
 
-//removed this as its already taken care of in checking the exam status to see whether its attempted
-// Takes in a studentId and the examId and checks if there has been an attempt
-// The exam status is shown if exam has already been attempted.
+// Checks if an exam has already been attempted by returning its current status.
+// This is handled inside examAttemptRecord but kept as a separate utility function.
+// Parameters: examId, simulationId, studentId
+// Returns: { exam: [{ examId, name, examStatus, examOutcome }] }
+// Errors: INVALID_SIMULATION, INVALID_STUDENT_ID, INVALID_EXAM
 function examPreventAttempt(examId, simulationId, studentId) {
     const data = getData();
 
