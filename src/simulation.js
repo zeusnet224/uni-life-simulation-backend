@@ -1,6 +1,9 @@
 import { getData } from './dataStore.js';
 
-// start a new simulation instance for the authenticated student
+// Creates a new simulation instance for a registered student with the given universe data.
+// Sets initial stats: energy=100, happiness=50, timeElapsed=0, currentActivity=DOOM_SCROLLING.
+// Returns { simulationId } on success.
+// Errors: INVALID_STUDENT_ID, INVALID_UNIVERSE
 function simulationCreate(studentId, universeData) {
   const data = getData();
 
@@ -61,6 +64,10 @@ function simulationCreate(studentId, universeData) {
   };
 }
 
+// Returns the current status and stats of a specific simulation.
+// Also checks win/lose conditions and updates simulationStatus if needed.
+// Returns { simulationStatus, currentActivity, energy, happiness, timeElapsed }
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
 function simulationStatus(studentId, simulationId) {
   const data = getData();
   const student = data.users.find(user => user.studentId === studentId);
@@ -75,7 +82,7 @@ function simulationStatus(studentId, simulationId) {
     return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
   }
 
-  //check if all the exams have been completed and update courseStatus
+  // Check win/lose conditions — update simulationStatus to DROPPED_OUT or GRADUATED if conditions met
   const totalFailures = simulation.universeData.exams.filter(e => e.examOutcome === 'FAIL').length;
   const anyCourseFailed = simulation.universeData.courses.some(c => c.courseStatus === 'FAILED');
 
@@ -105,7 +112,9 @@ function simulationStatus(studentId, simulationId) {
   };
 }
 
-// returns a list of all simulation instances belonging to a given student with summary info
+// Returns a list of all simulation instances belonging to a given student with summary info.
+// Each simulation includes simulationId, simulationStatus, currentActivity, timeElapsed.
+// Note: currently returns stub data — not yet fully implemented.
 function simulationsList(studentId) {
   return {
     simulations: [
