@@ -23,6 +23,8 @@ function simulationCreate(studentId, universeData) {
 
   const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
 
+  const societies = Array.isArray(universeData.societies) ? universeData.societies : [];
+
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
@@ -36,6 +38,7 @@ function simulationCreate(studentId, universeData) {
     happiness: 50,
     timeElapsed: 0,
     actionHistory: [],
+    joinedSocieties: [],
     universeData: {
       ...universeData,
       courses: universeData.courses.map(course => ({

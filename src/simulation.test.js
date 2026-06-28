@@ -1,8 +1,9 @@
   import { describe, expect, test, beforeEach } from 'vitest';
   import { simulationCreate, simulationStatus, simulationsList } from './simulation.js'
   import { authRegister } from './auth.js';
-  import { loadData, clearData } from './dataStore.js';
+  import { loadData } from './dataStore.js';
   import { simulationApplyAction } from './action.js';
+  import { clear } from './other.js';
 
   const customUniverse = {
     courses: [
@@ -31,7 +32,7 @@
   };
 
   beforeEach(() => {
-    clearData();
+    clear();
   });
 
   describe('simulationStatus return errors', () => {
