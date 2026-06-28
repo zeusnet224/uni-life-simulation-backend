@@ -1,61 +1,68 @@
 import { getData } from './dataStore.js';
 
-// Register a student with a student ID, password, and names, then return their student ID
+// register a student with their student ID, password, and names, then return the student ID.
 function authRegister(studentId, password, nameFirst, nameLast) {
-  const data = getData();
+    const data = getData();
+    const valid = /^z\d{7}$/.test(studentId);
 
-  // studentId must be lowercase z + exactly 7 digits
-  if (!/^z\d{7}$/.test(studentId)) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID must be a lowercase z followed by exactly 7 digits' };
-  }
+    // check 1: incorrect format
+    if (!valid) {
+        return { error: 'INVALID_STUDENT_ID', message: 'Student ID is not in the correct format'};
+    }
 
-  // studentId must not already be taken
-  const existingUser = data.users.find(u => u.studentId === studentId);
-  if (existingUser) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID is already taken' };
-  }
+    // check 2: existing name
+    for (const user of data.users)  {
+        if (user.studentId === studentId) {
+            return { error: 'INVALID_STUDENT_ID', message: 'Student is already taken'};
+        }
+    }
 
-  // nameFirst: 2-20 chars, letters/spaces/hyphens/apostrophes only
-  if (nameFirst.length < 2 || nameFirst.length > 20) {
-    return { error: 'INVALID_FIRST_NAME', message: 'First name must be 2-20 characters' };
-  }
+    // check 3: inavlid first name
+    const nameF = /^[a-zA-Z \-']+$/.test(nameFirst);
+    if (nameFirst.length < 2 || nameFirst.length > 20 || !nameF) {
+        return { error: 'INVALID_FIRST_NAME', message: 'First name is not in the correct format'};
 
-  if (!/^[a-zA-Z '\-]+$/.test(nameFirst)) {
-    return { error: 'INVALID_FIRST_NAME', message: 'First name contains invalid characters' };
-  }
+    }
 
-  // nameLast: 2-20 chars, letters/spaces/hyphens/apostrophes only
-  if (nameLast.length < 2 || nameLast.length > 20) {
-    return { error: 'INVALID_LAST_NAME', message: 'Last name must be 2-20 characters' };
-  }
+    // check 4: invalid last name
+    const nameL = /^[a-zA-Z \-']+$/.test(nameLast);
+    if (nameLast.length < 2 || nameLast.length > 20 || !nameL) {
+        return { error: 'INVALID_LAST_NAME', message: 'Last name is not in the correct format'};
 
-  if (!/^[a-zA-Z '\-]+$/.test(nameLast)) {
-    return { error: 'INVALID_LAST_NAME', message: 'Last name contains invalid characters' };
-  }
+    }
 
-  // password: min 8 chars, at least one letter and one number
-  if (password.length < 8) {
-    return { error: 'INVALID_PASSWORD', message: 'Password must be at least 8 characters' };
-  }
+    //check 5: invalid password
+    const pass = /[a-zA-Z]/.test(password);
+    const passDigit = /[0-9]/.test(password);
+    if (password.length < 8 || !pass || !passDigit) {
+        return { error: 'INVALID_PASSWORD', message: 'Password is not in the correct format'};
+    }
 
-  if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-    return { error: 'INVALID_PASSWORD', message: 'Password must contain at least one letter and one number' };
-  }
+    data.users.push({
+        studentId,
+        password,
+        nameFirst,
+        nameLast,
+    });
 
-  data.users.push({ studentId, password, nameFirst, nameLast });
-  return { studentId };
+    return { studentId };
 }
 
 // Given a registered student ID and password, return their student ID
 function authLogin(studentId, password) {
-  const data = getData();
+    const data = getData();
+    const user = data.users.find(u => u.studentId === studentId);
+    if (user === undefined) {
+        return { error: 'INVALID_CREDENTIALS', message: 'Student ID does not exist' };
+    }
 
-  const user = data.users.find(u => u.studentId === studentId);
-  if (!user || user.password !== password) {
-    return { error: 'INVALID_CREDENTIALS', message: 'Student ID or password is incorrect' };
-  }
+    //password doesn't match
+    if (user.password !== password) {
+        return { error: 'INVALID_CREDENTIALS', message: 'Password is incorrect' };
+    }
 
-  return { studentId };
+    return { studentId };
 }
 
-export { authRegister, authLogin };
+export { authRegister, authLogin};
+
