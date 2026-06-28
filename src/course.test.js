@@ -33,6 +33,8 @@
     clear();
   });
 
+  // Tests that courseRetrieveCourses returns all courses in a simulation.
+  // Errors: INVALID_SIMULATION
   describe('courseRetrieveCourses', () => {
     test('return invalid simulation error', () => {
       const testCourse = courseRetrieveCourses(5000)
@@ -52,6 +54,8 @@
     });
   });
 
+  // Tests that courseRetrieveExams returns all exams in a simulation.
+  // Errors: INVALID_SIMULATION
   describe('courseRetrieveExams', () => {
     test('return invalid simulation error', () => {
       const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
@@ -75,11 +79,14 @@
     });
   });
 
+  // Tests that courseRetrieveCourseDetails returns full details for a specific course.
+  // Errors: INVALID_SIMULATION, INVALID_COURSE
   describe('courseRetrieveCourseDetails', () => {
     test('return invalid stimulation error', () => {
       const testCourse = courseRetrieveCourseDetails('COMP1531', 67);
       expect(testCourse).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
     });
+
 
     test('return invalid course error', () => {
       const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
@@ -106,6 +113,8 @@
     });
   });
 
+  // Tests that courseRetrieveExamDetails returns full details for a specific exam.
+  // Errors: INVALID_SIMULATION, INVALID_EXAM
   describe('courseRetrieveExamDetails', () => {
     test('return invalid stimulation error', () => {
       const testExam = courseRetrieveExamDetails(1, 'E1-COMP1531');
@@ -137,6 +146,8 @@
     });
   });
 
+  // Tests that courseCompletion returns the completion status of a specific course.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_COURSE
   describe('courseCompletion', () => {
     test('return invalid student id error', () => {
       const testCourse = courseCompletion('COMP1531', 'z1111111', 1);
