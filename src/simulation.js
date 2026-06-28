@@ -86,36 +86,11 @@ function simulationStatus(studentId, simulationId) {
     return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
   }
 
-  const student = data.users.find(sim => sim.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
-  }
-
-  return {
-    simulationStatus: simulation.simulationStatus,
-    currentActivity: simulation.currentActivity,
-    energy: simulation.energy,
-    happiness: simulation.happiness,
-    timeElapsed: simulation.timeElapsed,
-  };
-}
-
-function simulationStatusFinal(studentId, simulationId) {
-  const data = getData();
-
-  const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-  if (!simulation) {
-      return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  }
-
-  const student = data.users.find(sim => sim.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
-  }
-
   //check if all the exams have been completed and update courseStatus
   const totalFailures = simulation.exams.filter(e => e.isPassed === false).length;
   const anyCourseFailed = simulation.courses.some(c => c.courseStatus === 'FAILED');
+
+  const allCoursesPassed = simulation.courses.every(c => c.courseStatus === 'PASSED');
 
   if (
     simulation.energy <= 0 ||
@@ -124,12 +99,7 @@ function simulationStatusFinal(studentId, simulationId) {
     totalFailures >= 5
   ) {
     simulation.simulationStatus = 'DROPPED_OUT';
-    return;
-  }
-
-  const allCoursesPassed = simulation.courses.every(c => c.courseStatus === 'PASSED');
-
-  if (
+  } else if (
     allCoursesPassed &&
     simulation.energy > 0 &&
     simulation.happiness > 0
@@ -143,7 +113,6 @@ function simulationStatusFinal(studentId, simulationId) {
     energy: simulation.energy,
     happiness: simulation.happiness,
     timeElapsed: simulation.timeElapsed,
-    studyHoursCompleted: simulation.studyHoursCompleted
   };
 }
 
