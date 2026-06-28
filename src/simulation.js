@@ -41,30 +41,31 @@ function simulationCreate(studentId, universeData) {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
 
-  data.simulations.push({
+data.simulations.push({
     simulationId,
     studentId,
     simulationStatus: 'ACTIVE',
     currentActivity: 'DOOM_SCROLLING',
-    energy: 75,
-    happiness: 60,
+    energy: 100,
+    happiness: 50,
     timeElapsed: 0,
-    lastAction: null,
-    universeData: {
-      ...universeData,
-      courses: universeData.courses.map(course => ({
-        ...course,
-        courseStatus: course.courseStatus || 'ACTIVE',
-      })),
-      exams: exams.map(exam => ({
-        ...exam,
-        studyHoursCompleted: exam.studyHoursCompleted || 0,
-        studyProgress: exam.studyProgress || 0,
-        examStatus: exam.examStatus || 'NOT_ATTEMPTED',
-        examScore: exam.examScore || 0,
-        examOutcome: exam.examOutcome || 'NIL',
-      })),
-    },
+    actionHistory: [],
+
+    courses: universeData.courses.map(course => ({
+      courseId: course.courseId,
+      name: course.name,
+      courseStatus: 'IN_PROGRESS',
+    })),
+
+    exams: exams.map(exam => ({
+      examId: exam.examId,
+      courseId: exam.courseId,
+      name: exam.name,
+      requiredStudyHours: exam.requiredStudyHours,
+      studyHoursCompleted: 0,
+      examStatus: 'NOT_ATTEMPTED',
+      examOutcome: 'NIL',
+    })),
   });
 
   return {
@@ -72,26 +73,31 @@ function simulationCreate(studentId, universeData) {
   };
 }
 
+// Get the current status and stats of a specific simulation
+// Returns simulationStatus, currentActivity, energy, happiness, timeElapsed
 function simulationStatus(studentId, simulationId) {
-
-  const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-  if (!simulation) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  } else if (simulation.simulationId !== simulationId ) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
-  }
-
-  const student = data.users.find(sim => sim.studentId === studentId);
+  const data = getData();
+// check student exists before checking simulation
+  const student = data.users.find(u => u.studentId === studentId);
   if (!student) {
     return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
   }
+// check simulation exists
+  const simulation = data.simulations.find(s => s.simulationId === simulationId);
+  if (!simulation) {
+    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+  }
+// check simulation belongs to this student
+  if (simulation.studentId !== studentId) {
+    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID' };
+  }
 
   return {
-    simulationStatus: 'ACTIVE',
-    currentActivity: 'DOOM_SCROLLING',
-    energy: 75,
-    happiness: 60,
-    timeElapsed: 1,
+    simulationStatus: simulation.simulationStatus,
+    currentActivity:  simulation.currentActivity,
+    energy:           simulation.energy,
+    happiness:        simulation.happiness,
+    timeElapsed:      simulation.timeElapsed,
   };
 }
 
