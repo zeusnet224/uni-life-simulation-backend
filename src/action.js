@@ -216,4 +216,4 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   };
 }
 
-export { simulationApplyAction, checkWinLoseConditions };
+export { simulationApplyAction, checkWinLoseConditions, clampStat };
