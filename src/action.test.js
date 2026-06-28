@@ -1,3 +1,6 @@
+// Tests for simulationApplyAction in action.js
+// Covers: all 5 action types, error validation, activity constraints,
+// stat calculations, return value shape, and win/lose conditions
 import { describe, test, expect, beforeEach } from 'vitest';
 import { simulationApplyAction } from './action.js';
 import { authRegister } from './auth.js';
@@ -29,7 +32,8 @@ function setupSim(universe = SIMPLE_UNIVERSE) {
 // reset state before every test so tests are independent
 beforeEach(() => { clear(); });
 
-// ── INVALID_ACTION ──────────────────────────────────────────────────────────
+// Tests that INVALID_ACTION is returned when the action string is not one of the 5 valid types.
+// INVALID_ACTION must be returned before INVALID_DURATION when both are wrong.
 describe('INVALID_ACTION errors', () => {
   test('unrecognised action string', () => {
     const simId = setupSim();
@@ -49,7 +53,8 @@ describe('INVALID_ACTION errors', () => {
   });
 });
 
-// ── INVALID_DURATION ────────────────────────────────────────────────────────
+// Tests that INVALID_DURATION is returned when duration is 0, negative, or a fraction.
+// Duration must be a positive integer of at least 1 hour.
 describe('INVALID_DURATION errors', () => {
   test('duration of 0', () => {
     const simId = setupSim();
@@ -69,7 +74,7 @@ describe('INVALID_DURATION errors', () => {
   });
 });
 
-// ── INVALID_STUDENT_ID ──────────────────────────────────────────────────────
+// Tests that INVALID_STUDENT_ID is returned when the studentId does not belong to a registered student.
 describe('INVALID_STUDENT_ID errors', () => {
   test('unregistered student', () => {
     const simId = setupSim();
@@ -77,7 +82,8 @@ describe('INVALID_STUDENT_ID errors', () => {
   });
 });
 
-// ── INVALID_SIMULATION ──────────────────────────────────────────────────────
+// Tests that INVALID_SIMULATION is returned when the simulationId does not exist
+// or when the simulation belongs to a different student.
 describe('INVALID_SIMULATION errors', () => {
   test('non-existent simulationId', () => {
     setupSim();
@@ -90,7 +96,8 @@ describe('INVALID_SIMULATION errors', () => {
   });
 });
 
-// ── SIMULATION_ENDED ────────────────────────────────────────────────────────
+// Tests that SIMULATION_ENDED is returned when trying to perform an action
+// on a simulation that has already GRADUATED or DROPPED_OUT.
 describe('SIMULATION_ENDED errors', () => {
   test('returns SIMULATION_ENDED after simulation DROPPED_OUT', () => {
     const simId = setupSim();
@@ -105,7 +112,8 @@ describe('SIMULATION_ENDED errors', () => {
   });
 });
 
-// ── INVALID_EXAM ────────────────────────────────────────────────────────────
+// Tests that INVALID_EXAM is returned when STUDYING is attempted without an examId
+// or with an examId that does not exist in this simulation.
 describe('INVALID_EXAM errors', () => {
   test('no examId provided for STUDYING', () => {
     const simId = setupSim();
@@ -117,7 +125,9 @@ describe('INVALID_EXAM errors', () => {
   });
 });
 
-// ── STUDYING CONSTRAINT ─────────────────────────────────────────────────────
+// Tests the STUDYING consecutive-hours constraint.
+// A student can study for a maximum of 3 consecutive hours.
+// After 3 hours they must perform a different activity for at least 1 hour before studying again.
 describe('STUDYING consecutive-hours constraint', () => {
   test('allows exactly 3 consecutive hours', () => {
     const simId = setupSim();
@@ -152,7 +162,9 @@ describe('STUDYING consecutive-hours constraint', () => {
   });
 });
 
-// ── EXERCISING CONSTRAINT ───────────────────────────────────────────────────
+// Tests the EXERCISING constraints.
+// Rule 1: student must have eaten within the last 4 hours of when exercise ends.
+// Rule 2: there must be at least a 1-hour cooldown between exercise sessions.
 describe('EXERCISING constraint: eating window', () => {
   test('INVALID_ACTION when no eating has occurred', () => {
     const simId = setupSim();
@@ -209,7 +221,8 @@ describe('EXERCISING constraint: 1-hour cooldown', () => {
   });
 });
 
-// ── STAT CALCULATIONS ───────────────────────────────────────────────────────
+// Tests that each action applies the correct energy and happiness changes per hour.
+// Stats are clamped to the 0-100 range after every update.
 describe('Stat calculations', () => {
   test('DOOM_SCROLLING: energy +3/hr, happiness +2/hr', () => {
     const simId = setupSim();
@@ -265,7 +278,7 @@ describe('Stat calculations', () => {
   });
 });
 
-// ── RETURN SHAPE ────────────────────────────────────────────────────────────
+// Tests that a successful action returns all required fields with correct values.
 describe('Return value shape', () => {
   test('returns all required fields', () => {
     const simId = setupSim();
@@ -293,7 +306,8 @@ describe('Return value shape', () => {
   });
 });
 
-// ── TIME AND ACTIVITY TRACKING ──────────────────────────────────────────────
+// Tests that timeElapsed accumulates correctly across multiple actions
+// and that currentActivity always reflects the most recently performed action.
 describe('timeElapsed and currentActivity', () => {
   test('timeElapsed accumulates across multiple actions', () => {
     const simId = setupSim();
