@@ -1,34 +1,39 @@
 import { getData } from './dataStore.js';
 
-// start a new simulation instance for the authenticated student
+// Creates a new simulation for a registered student using the given universe data.
 function simulationCreate(studentId, universeData) {
   const data = getData();
 
-  const student = data.users.find(u => u.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not refer to a valid registered student' };
+  // A simulation can only be created for a student that already exists in the datastore.
+  if (!data.users.some(user => user.studentId === studentId)) {
+    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
   }
 
+  // The universe data must be a normal object, not null, an array, or another data type.
   if (universeData === null || typeof universeData !== 'object' || Array.isArray(universeData)) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must be an object' };
   }
 
+  // If another function returned an error while creating/loading the universe, pass that error on.
   if (universeData.error) {
     return { error: 'INVALID_UNIVERSE', message: universeData.message || 'Universe data is invalid' };
   }
 
+  // Courses are required because the simulation depends on course data to track progress.
   if (!Array.isArray(universeData.courses)) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
   }
 
+  // Use empty arrays when optional universe sections are missing.
   const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
-
   const societies = Array.isArray(universeData.societies) ? universeData.societies : [];
 
+  // Generate the next simulation ID by finding the largest existing ID and adding one.
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
 
+  // Store the new simulation with its starting status, activity, stats, and copied universe data.
   data.simulations.push({
     simulationId,
     studentId,
@@ -41,10 +46,14 @@ function simulationCreate(studentId, universeData) {
     joinedSocieties: [],
     universeData: {
       ...universeData,
+
+      // Ensure every course has a status so later functions can safely check course progress.
       courses: universeData.courses.map(course => ({
         ...course,
         courseStatus: course.courseStatus || 'ACTIVE',
       })),
+
+      // Ensure every exam has the progress fields needed by study and exam-related functions.
       exams: exams.map(exam => ({
         ...exam,
         studyHoursCompleted: exam.studyHoursCompleted || 0,
@@ -53,6 +62,8 @@ function simulationCreate(studentId, universeData) {
         examScore: exam.examScore || 0,
         examOutcome: exam.examOutcome || 'NIL',
       })),
+
+      // Keep society data in the simulation so society-related functions can use it later.
       societies,
     },
   });
