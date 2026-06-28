@@ -23,7 +23,7 @@ function clampStat(value) {
 function checkWinLoseConditions(simulation) {
   // Count total exam failures across the whole simulation
   let totalExamFailures = 0;
-  for (const exam of simulation.exams) {
+  for (const exam of simulation.universeData.exams) {
     if (exam.examOutcome === 'FAIL') {
       totalExamFailures++;
     }
@@ -31,7 +31,7 @@ function checkWinLoseConditions(simulation) {
 
   // Check if any course has failed
   let anyCourseFailed = false;
-  for (const course of simulation.courses) {
+  for (const course of simulation.universeData.courses) {
     if (course.courseStatus === 'FAILED') {
       anyCourseFailed = true;
     }
@@ -45,7 +45,7 @@ function checkWinLoseConditions(simulation) {
 
   // Graduation condition — all courses must be passed
   let allCoursesPassed = true;
-  for (const course of simulation.courses) {
+  for (const course of simulation.universeData.courses) {
     if (course.courseStatus !== 'PASSED') {
       allCoursesPassed = false;
     }
@@ -160,7 +160,7 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
     if (!examId) {
       return { error: 'INVALID_EXAM', message: 'A STUDYING action requires an examId' };
     }
-    const exam = simulation.exams.find(e => e.examId === examId);
+    const exam = simulation.universeData.exams.find(e => e.examId === examId);
     if (!exam) {
       return { error: 'INVALID_EXAM', message: 'Exam ID does not exist in this simulation' };
     }
@@ -186,7 +186,7 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
 
   // Update study hours for the target exam if action is STUDYING
   if (action === 'STUDYING') {
-    const exam = simulation.exams.find(e => e.examId === examId);
+    const exam = simulation.universeData.exams.find(e => e.examId === examId);
     exam.studyHoursCompleted += duration;
   }
 

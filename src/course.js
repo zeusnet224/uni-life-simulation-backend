@@ -99,3 +99,11 @@ function courseCompletion(courseId, studentId) {
         ]
     };
 }
+
+export {
+    courseRetrieveCourses,
+    courseRetrieveExams,
+    courseRetrieveCourseDetails,
+    courseRetrieveExamDetails,
+    courseCompletion
+};

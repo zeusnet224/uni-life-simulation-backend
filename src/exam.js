@@ -29,7 +29,7 @@ function examStudyProgress(simulationId, studentId, examId) {
     }
 
     // check exam exists in this simulation
-    const exam = simulation.exams.find(e => e.examId === examId);
+    const exam = simulation.universeData.exams.find(e => e.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
@@ -71,7 +71,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
     }
 
     // check exam exists
-    const exam = simulation.exams.find(e => e.examId === examId);
+    const exam = simulation.universeData.exams.find(sim => sim.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
@@ -96,8 +96,8 @@ function examAttemptRecord(examId, simulationId, studentId) {
     }
 
     // update course status based on all exam outcomes
-    const courseExams = simulation.exams.filter(e => e.courseId === exam.courseId);
-    const course = simulation.courses.find(c => c.courseId === exam.courseId);
+    const courseExams = simulation.universeData.exams.filter(e => e.courseId === exam.courseId);
+    const course = simulation.universeData.courses.find(c => c.courseId === exam.courseId);
 
     let totalPassed = 0;
     let totalFailed = 0;
@@ -148,7 +148,7 @@ function examPreventAttempt(examId, simulationId, studentId) {
       return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
     }
 
-    const exam = simulation.exams.find(sim => sim.examId === examId);
+    const exam = simulation.universeData.exams.find(sim => sim.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }

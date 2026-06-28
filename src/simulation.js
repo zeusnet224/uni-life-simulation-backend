@@ -36,20 +36,21 @@ function simulationCreate(studentId, universeData) {
     happiness: 50,
     timeElapsed: 0,
     actionHistory: [],
-    courses: universeData.courses.map(course => ({
-      courseId: course.courseId,
-      name: course.name,
-      courseStatus: 'IN_PROGRESS',
-    })),
-    exams: exams.map(exam => ({
-      examId: exam.examId,
-      courseId: exam.courseId,
-      name: exam.name,
-      requiredStudyHours: exam.requiredStudyHours,
-      studyHoursCompleted: 0,
-      examStatus: 'NOT_ATTEMPTED',
-      examOutcome: 'NIL',
-    })),
+    universeData: {
+      ...universeData,
+      courses: universeData.courses.map(course => ({
+        ...course,
+        courseStatus: course.courseStatus || 'ACTIVE',
+      })),
+      exams: exams.map(exam => ({
+        ...exam,
+        studyHoursCompleted: exam.studyHoursCompleted || 0,
+        studyProgress: exam.studyProgress || 0,
+        examStatus: exam.examStatus || 'NOT_ATTEMPTED',
+        examScore: exam.examScore || 0,
+        examOutcome: exam.examOutcome || 'NIL',
+      })),
+    },
   });
 
   return {
@@ -59,50 +60,23 @@ function simulationCreate(studentId, universeData) {
 
 function simulationStatus(studentId, simulationId) {
   const data = getData();
-
-  // Check student exists before checking simulation
-  const student = data.users.find(u => u.studentId === studentId);
+  const student = data.users.find(user => user.studentId === studentId);
   if (!student) {
     return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
   }
-
-  // Check simulation exists
-  const simulation = data.simulations.find(s => s.simulationId === simulationId);
-  if (!simulation) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  }
-
-  // Check simulation belongs to this student
-  if (simulation.studentId !== studentId) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID' };
-  }
-
-  // Return actual values from simulation
-  return {
-    simulationStatus: simulation.simulationStatus,
-    currentActivity:  simulation.currentActivity,
-    energy:           simulation.energy,
-    happiness:        simulation.happiness,
-    timeElapsed:      simulation.timeElapsed,
-  };
-}
-
-function simulationStatusFinal(studentId, simulationId) {
-  const data = getData();
 
   const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
   if (!simulation) {
-      return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  }
-
-  const student = data.users.find(sim => sim.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
+    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+  } else if (simulation.studentId !== studentId ) {
+    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
   }
 
   //check if all the exams have been completed and update courseStatus
-  const totalFailures = simulation.exams.filter(e => e.isPassed === false).length;
-  const anyCourseFailed = simulation.courses.some(c => c.courseStatus === 'FAILED');
+  const totalFailures = simulation.universeData.exams.filter(e => e.examOutcome === 'FAIL').length;
+  const anyCourseFailed = simulation.universeData.courses.some(c => c.courseStatus === 'FAILED');
+
+  const allCoursesPassed = simulation.universeData.courses.every(c => c.courseStatus === 'PASSED');
 
   if (
     simulation.energy <= 0 ||
@@ -111,12 +85,7 @@ function simulationStatusFinal(studentId, simulationId) {
     totalFailures >= 5
   ) {
     simulation.simulationStatus = 'DROPPED_OUT';
-    return;
-  }
-
-  const allCoursesPassed = simulation.courses.every(c => c.courseStatus === 'PASSED');
-
-  if (
+  } else if (
     allCoursesPassed &&
     simulation.energy > 0 &&
     simulation.happiness > 0
@@ -130,7 +99,6 @@ function simulationStatusFinal(studentId, simulationId) {
     energy: simulation.energy,
     happiness: simulation.happiness,
     timeElapsed: simulation.timeElapsed,
-    studyHoursCompleted: simulation.studyHoursCompleted
   };
 }
 
