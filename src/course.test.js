@@ -1,5 +1,5 @@
   import { describe, expect, test, beforeEach } from 'vitest';
-  import { clearData } from './dataStore.js';
+  import { clear } from './other.js';
   import {
     courseRetrieveCourses,
     courseRetrieveExams,
@@ -30,7 +30,7 @@
   };
 
   beforeEach(() => {
-    clearData();
+    clear();
   });
 
   describe('courseRetrieveCourses', () => {

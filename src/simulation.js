@@ -4,12 +4,9 @@ import { getData } from './dataStore.js';
 function simulationCreate(studentId, universeData) {
   const data = getData();
 
-  if (typeof studentId !== 'string' || studentId.trim() === '') {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID must be a non-empty string' };
-  }
-
-  if (data.users.length > 0 && !data.users.some(user => user.studentId === studentId)) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
+  const student = data.users.find(u => u.studentId === studentId);
+  if (!student) {
+    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not refer to a valid registered student' };
   }
 
   if (universeData === null || typeof universeData !== 'object' || Array.isArray(universeData)) {
@@ -24,18 +21,7 @@ function simulationCreate(studentId, universeData) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
   }
 
-  const exams = Array.isArray(universeData.exams)
-    ? universeData.exams
-    : universeData.courses.flatMap(course => {
-        if (!Array.isArray(course.exams)) {
-          return [];
-        }
-
-        return course.exams.map(exam => ({
-          ...exam,
-          courseId: exam.courseId || course.courseId,
-        }));
-      });
+  const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
 
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
@@ -49,7 +35,7 @@ function simulationCreate(studentId, universeData) {
     energy: 100,
     happiness: 50,
     timeElapsed: 0,
-    lastAction: null,
+    actionHistory: [],
     universeData: {
       ...universeData,
       courses: universeData.courses.map(course => ({
@@ -87,10 +73,10 @@ function simulationStatus(studentId, simulationId) {
   }
 
   //check if all the exams have been completed and update courseStatus
-  const totalFailures = simulation.exams.filter(e => e.isPassed === false).length;
-  const anyCourseFailed = simulation.courses.some(c => c.courseStatus === 'FAILED');
+  const totalFailures = simulation.universeData.exams.filter(e => e.examOutcome === 'FAIL').length;
+  const anyCourseFailed = simulation.universeData.courses.some(c => c.courseStatus === 'FAILED');
 
-  const allCoursesPassed = simulation.courses.every(c => c.courseStatus === 'PASSED');
+  const allCoursesPassed = simulation.universeData.courses.every(c => c.courseStatus === 'PASSED');
 
   if (
     simulation.energy <= 0 ||
@@ -171,7 +157,7 @@ function simulationGetconcludingNotification(studentId, simulationId) {
   }
 }
 
-export { simulationCreate, simulationStatus, simulationsList, simulationApplyAction, examGetStudyAction, simulationGetLastAction, simulationGetconcludingNotification };
+export { simulationCreate, simulationStatus, simulationsList };
 
 
 
