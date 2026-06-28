@@ -1,6 +1,7 @@
 import { getData } from './dataStore.js';
 
-// Stat effects per hour for each action
+// Stat effects per hour for each action (from spec section 2.1.4)
+// Each action changes energy and happiness by these amounts per hour of duration
 const ACTION_EFFECTS = {
   DOOM_SCROLLING: { energyPerHour: 3,   happinessPerHour: 2  },
   STUDYING:       { energyPerHour: -15,  happinessPerHour: -5 },
@@ -9,6 +10,7 @@ const ACTION_EFFECTS = {
   EXERCISING:     { energyPerHour: -10,  happinessPerHour: 6  },
 };
 
+// The 5 valid action types a student can perform in a simulation
 const VALID_ACTIONS = ['DOOM_SCROLLING', 'STUDYING', 'SLEEPING', 'EATING', 'EXERCISING'];
 
 // Clamp a stat value to the 0-100 range
@@ -38,7 +40,8 @@ function checkWinLoseConditions(simulation) {
   }
 
   // Dropout conditions — any one triggers dropout immediately
-  if (simulation.energy <= 0 || simulation.happiness <= 0 || anyCourseFailed || totalExamFailures >= 5) {
+  if (simulation.energy <= 0 || simulation.happiness <= 0 || anyCourseFailed ||
+      totalExamFailures >= 5) {
     simulation.simulationStatus = 'DROPPED_OUT';
     return;
   }
