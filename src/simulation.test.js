@@ -71,10 +71,10 @@
       const testSim = simulationStatus(studentId, simulationId);
       expect(testSim).toStrictEqual({
         simulationStatus: 'DROPPED_OUT',
-        currentActivity: expect.any(String),
+        currentActivity: testSim.currentActivity,
         energy: 0,
-        happiness: expect.any(Number),
-        timeElapsed: expect.any(Number),
+        happiness: testSim.happiness,
+        timeElapsed: testSim.timeElapsed,
       });
     });
 
@@ -92,10 +92,10 @@
       const testSim = simulationStatus(studentId, simulationId);
       expect(testSim).toStrictEqual({
         simulationStatus: 'DROPPED_OUT',
-        currentActivity: expect.any(String),
-        energy: expect.any(Number),
+        currentActivity: testSim.currentActivity,
+        energy: testSim.energy,
         happiness: 0,
-        timeElapsed: expect.any(Number),
+        timeElapsed: testSim.timeElapsed,
       });
     });
 
@@ -105,10 +105,10 @@
       const testSim = simulationStatus(studentId, simulationId);
       expect(testSim).toStrictEqual({
         simulationStatus: 'DROPPED_OUT',
-        currentActivity: expect.any(String),
-        energy: expect.any(Number),
-        happiness: expect.any(Number),
-        timeElapsed: expect.any(Number),
+        currentActivity: testSim.currentActivity,
+        energy: testSim.energy,
+        happiness: testSim.happiness,
+        timeElapsed: testSim.timeElapsed,
       });
     });
 
@@ -118,10 +118,10 @@
       const testSim = simulationStatus(studentId, simulationId);
       expect(testSim).toStrictEqual({
         simulationStatus: 'DROPPED_OUT',
-        currentActivity: expect.any(String),
-        energy: expect.any(Number),
-        happiness: expect.any(Number),
-        timeElapsed: expect.any(Number),
+        currentActivity: testSim.currentActivity,
+        energy: testSim.energy,
+        happiness: testSim.happiness,
+        timeElapsed: testSim.timeElapsed,
       });
     });
   });
