@@ -53,6 +53,7 @@ function simulationCreate(studentId, universeData) {
         examScore: exam.examScore || 0,
         examOutcome: exam.examOutcome || 'NIL',
       })),
+      societies,
     },
   });
 
@@ -61,6 +62,7 @@ function simulationCreate(studentId, universeData) {
   };
 }
 
+// Get the current status and stats of a specific simulation.
 function simulationStatus(studentId, simulationId) {
   const data = getData();
   const student = data.users.find(user => user.studentId === studentId);
