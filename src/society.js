@@ -1,9 +1,16 @@
   import { getData } from './dataStore.js';
   import { checkWinLoseConditions, clampStat } from './action.js';
 
+  // Stat effects per hour for attending a society event
+  // Attending increases happiness but costs energy
   const societyAction = {
     ATTENDING: { happinessPerHour: 10, energyPerHour: -5 }
   };
+
+  // Returns a list of all societies available to join in this simulation.
+  // Only shows societies the student has NOT already joined.
+  // Returns { societies: [{ societyId, name, description }] }
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
   function societyList(studentId, simulationId) {
     const data = getData();
 
@@ -28,6 +35,9 @@
     return { societies: availableSocieties };
   }
 
+  // Joins a society in the simulation — student can only join each society once.
+  // Returns { societyId, name } on success.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY
   function societyJoin(studentId, simulationId, societyId) {
     const data = getData();
 
@@ -58,7 +68,12 @@
     };
   }
 
-  //
+  // Attends a society event for a given duration (1-4 hours).
+  // Attending costs energy (-5/hr) and increases happiness (+10/hr).
+  // Advances timeElapsed and sets currentActivity to ATTENDING_SOCIETY.
+  // Checks win/lose conditions immediately after attending.
+  // Returns { happiness, energy } on success.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY, INVALID_DURATION
   function societyAttend(studentId, simulationId, societyId, duration) {
     const data = getData();
 
