@@ -48,7 +48,7 @@ function authRegister(studentId, password, nameFirst, nameLast) {
     return { studentId };
 }
 
-// registered student ID and password, return their student ID
+// Given a registered student ID and password, return their student ID
 function authLogin(studentId, password) {
     const data = getData();
     const user = data.users.find(u => u.studentId === studentId);
