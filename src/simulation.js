@@ -24,7 +24,10 @@ function simulationCreate(studentId, universeData) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
   }
 
+
   // Generate the next simulation ID by finding the largest existing ID and adding one.
+  const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
+  const societies = Array.isArray(universeData.societies) ? universeData.societies : [];
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
@@ -39,6 +42,7 @@ function simulationCreate(studentId, universeData) {
     happiness: 50,
     timeElapsed: 0,
     actionHistory: [],
+    joinedSocieties: [],
     universeData: {
       ...universeData,
 

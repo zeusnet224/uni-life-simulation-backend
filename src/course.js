@@ -9,7 +9,7 @@ function courseRetrieveCourses(simulationId) {
     }
 
     return {
-        courses: simulation.courses.map(course => ({
+        courses: simulation.universeData.courses.map(course => ({
             courseId: course.courseId,
             name: course.name
         }))
@@ -26,7 +26,7 @@ function courseRetrieveExams(simulationId) {
     }
 
     return {
-        exams: simulation.exams.map(exam => ({
+        exams: simulation.universeData.exams.map(exam => ({
             examId: exam.examId,
             courseId: exam.courseId,
             name: exam.name,
@@ -35,10 +35,15 @@ function courseRetrieveExams(simulationId) {
     };
 }
 
-function courseRetrieveCourseDetails(courseId) {
+function courseRetrieveCourseDetails(courseId, simulationId) {
     const data = getData();
 
-    const course = simulation.courses.find(c => c.courseId === courseId);
+    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+    if (!simulation) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+    }
+
+    const course = simulation.universeData.courses.find(c => c.courseId === courseId);
     if (!course) {
         return { error: 'INVALID_COURSE', message: 'Course ID does not exist' };
     }
@@ -55,10 +60,14 @@ function courseRetrieveCourseDetails(courseId) {
     };
 }
 
-function courseRetrieveExamDetails(examId) {
+function courseRetrieveExamDetails(simulationId, examId) {
     const data = getData();
+    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+    if (!simulation) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+    }
 
-    const exam = simulation.exams.find(e => e.examId === examId);
+    const exam = simulation.universeData.exams.find(e => e.examId === examId);
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist' };
     }
@@ -76,7 +85,7 @@ function courseRetrieveExamDetails(examId) {
 }
 
 // Takes in a courseId and checks the outcome of all 3 exams within a course
-function courseCompletion(courseId, studentId) {
+function courseCompletion(courseId, studentId, simulationId) {
 
     const data = getData();
 
@@ -85,8 +94,13 @@ function courseCompletion(courseId, studentId) {
       return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
     }
 
-    const course = simulation.courses.find(c => c.courseId === courseId);
-    if (!user) {
+    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
+    if (!simulation) {
+        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
+    }
+
+    const course = simulation.universeData.courses.find(c => c.courseId === courseId);
+    if (!course) {
       return { error: 'INVALID_COURSE', message: 'Course does not exist' };
     }
 
@@ -105,5 +119,5 @@ export {
     courseRetrieveExams,
     courseRetrieveCourseDetails,
     courseRetrieveExamDetails,
-    courseCompletion
+    courseCompletion,
 };
