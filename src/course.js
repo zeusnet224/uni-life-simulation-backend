@@ -1,5 +1,9 @@
 import { getData } from './dataStore.js';
 
+// Returns a summary list of all courses in the simulation.
+// Each course includes courseId and name only.
+// Returns { courses: [{ courseId, name }] }
+// Errors: INVALID_SIMULATION
 function courseRetrieveCourses(simulationId) {
     const data = getData();
 
@@ -16,8 +20,12 @@ function courseRetrieveCourses(simulationId) {
     };
 }
 
+// Returns a summary list of all exams across all courses in the simulation.
+// Each exam includes examId, courseId, name and requiredStudyHours.
+// Returns { exams: [{ examId, courseId, name, requiredStudyHours }] }
+// Errors: INVALID_SIMULATION
 function courseRetrieveExams(simulationId) {
-    //all exams (not just the users)
+    // returns all exams in the universe, not just attempted ones
     const data = getData();
 
     const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
@@ -35,6 +43,10 @@ function courseRetrieveExams(simulationId) {
     };
 }
 
+// Returns full details for a specific course in the simulation.
+// Includes courseId, name, courseDetails and current courseStatus.
+// Returns { course: [{ courseId, name, courseDetails, courseStatus }] }
+// Errors: INVALID_SIMULATION, INVALID_COURSE
 function courseRetrieveCourseDetails(courseId, simulationId) {
     const data = getData();
 
@@ -60,6 +72,10 @@ function courseRetrieveCourseDetails(courseId, simulationId) {
     };
 }
 
+// Returns full details for a specific exam in the simulation.
+// Includes examId, courseId, name and requiredStudyHours.
+// Returns { exam: [{ examId, courseId, name, requiredStudyHours }] }
+// Errors: INVALID_SIMULATION, INVALID_EXAM
 function courseRetrieveExamDetails(simulationId, examId) {
     const data = getData();
     const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
@@ -84,7 +100,10 @@ function courseRetrieveExamDetails(simulationId, examId) {
     };
 }
 
-// Takes in a courseId and checks the outcome of all 3 exams within a course
+// Returns the completion status of a specific course for a given student.
+// courseStatus reflects whether the course is IN_PROGRESS, PASSED, or FAILED.
+// Returns { course: [{ courseId, courseStatus }] }
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_COURSE
 function courseCompletion(courseId, studentId, simulationId) {
 
     const data = getData();

@@ -31,6 +31,8 @@
     clear();
   });
 
+  // Tests that societyList returns the correct error when given invalid inputs.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
   describe('return errors for societyList', () => {
     test('return invalid student id', () => {
       const testSociety = societyList('z1234567', 1);
@@ -43,7 +45,7 @@
       expect(testSociety).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
     });
   });
-
+  // Tests that societyList returns only societies the student has NOT already joined.
   describe('return societyList', () => {
     test('return available societies', () => {
       const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
@@ -62,6 +64,9 @@
     });
   });
 
+  // Tests that societyJoin returns the correct error when given invalid inputs.
+  // A student cannot join a society they have already joined.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY
   describe('return errors for societyJoin', () => {
     test('return invalid student id', () => {
       const testSociety = societyJoin('z1234567', 1, 'CSESOC');
@@ -90,6 +95,7 @@
     });
   });
 
+  // Tests that societyJoin returns the societyId and name on a successful join.
   describe('return valid societyJoin', () => {
     test('return the society that the student has joined', () => {
       const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
@@ -103,6 +109,10 @@
     });
   });
 
+  // Tests that societyAttend returns the correct error when given invalid inputs.
+  // Student must have joined the society before attending.
+  // Duration must be between 1 and 4 hours inclusive.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY, INVALID_DURATION
   describe('return errors for societyAttend', () => {
     test('return invalid student id', () => {
       const testSociety = societyAttend('z1234567', 1, 'CSESOC', 1);
@@ -146,6 +156,8 @@
     });
   });
 
+  // Tests that societyAttend correctly updates happiness and energy after attending.
+  // Attending costs 5 energy per hour and gains 10 happiness per hour.
   describe('return valid attendance of a society', () => {
     test('return the society that the student has joined', () => {
       const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');

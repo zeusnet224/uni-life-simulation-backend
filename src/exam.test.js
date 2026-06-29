@@ -30,7 +30,8 @@ function setupSim(universe = SIMPLE_UNIVERSE) {
 // reset state before every test so tests are independent
 beforeEach(() => { clear(); });
 
-// examStudyProgress errors
+// Tests that INVALID_STUDENT_ID is returned when the studentId does not belong to
+// a registered student.
 describe('examStudyProgress – INVALID_STUDENT_ID', () => {
   test('unregistered student', () => {
     const simId = setupSim();
@@ -38,6 +39,8 @@ describe('examStudyProgress – INVALID_STUDENT_ID', () => {
   });
 });
 
+// Tests that INVALID_SIMULATION is returned when simulationId does not exist
+// or when the simulation belongs to a different student.
 describe('examStudyProgress – INVALID_SIMULATION', () => {
   test('non-existent simulationId', () => {
     setupSim();
@@ -50,6 +53,7 @@ describe('examStudyProgress – INVALID_SIMULATION', () => {
   });
 });
 
+// Tests that INVALID_EXAM is returned when the examId does not exist in this simulation.
 describe('examStudyProgress – INVALID_EXAM', () => {
   test('non-existent examId', () => {
     const simId = setupSim();
@@ -57,7 +61,9 @@ describe('examStudyProgress – INVALID_EXAM', () => {
   });
 });
 
-// examStudyProgress success
+// Tests that examStudyProgress correctly returns study progress data.
+// ready = true means the student has studied enough hours to pass — they still need to attempt
+// the exam. This function is read-only and must not change timeElapsed or currentActivity.
 describe('examStudyProgress – success cases', () => {
   test('returns all required fields', () => {
     const simId = setupSim();
@@ -115,7 +121,9 @@ describe('examStudyProgress – success cases', () => {
   });
 });
 
-// examAttemptRecord errors
+// Tests all error cases for examAttemptRecord.
+// Errors must be returned in this order: INVALID_STUDENT_ID, INVALID_SIMULATION,
+// SIMULATION_ENDED, INVALID_EXAM, ALREADY_ATTEMPTED.
 describe('examAttemptRecord – INVALID_STUDENT_ID', () => {
   test('unregistered student', () => {
     const simId = setupSim();
@@ -123,6 +131,8 @@ describe('examAttemptRecord – INVALID_STUDENT_ID', () => {
   });
 });
 
+// Tests that INVALID_SIMULATION is returned when simulationId does not exist
+// or when the simulation belongs to a different student.
 describe('examAttemptRecord – INVALID_SIMULATION', () => {
   test('non-existent simulationId', () => {
     setupSim();
@@ -135,6 +145,8 @@ describe('examAttemptRecord – INVALID_SIMULATION', () => {
   });
 });
 
+// Tests that SIMULATION_ENDED is returned when trying to attempt an exam
+// on a simulation that has already GRADUATED or DROPPED_OUT.
 describe('examAttemptRecord – SIMULATION_ENDED', () => {
   test('returns SIMULATION_ENDED when sim is DROPPED_OUT', () => {
     const simId = setupSim();
@@ -148,6 +160,7 @@ describe('examAttemptRecord – SIMULATION_ENDED', () => {
   });
 });
 
+// Tests that INVALID_EXAM is returned when the examId does not exist in this simulation.
 describe('examAttemptRecord – INVALID_EXAM', () => {
   test('non-existent examId', () => {
     const simId = setupSim();
@@ -155,6 +168,8 @@ describe('examAttemptRecord – INVALID_EXAM', () => {
   });
 });
 
+// Tests that ALREADY_ATTEMPTED is returned when trying to attempt an exam
+// that has already been attempted — each exam can only be attempted once.
 describe('examAttemptRecord – ALREADY_ATTEMPTED', () => {
   test('returns ALREADY_ATTEMPTED on second attempt', () => {
     const simId = setupSim();
@@ -163,7 +178,8 @@ describe('examAttemptRecord – ALREADY_ATTEMPTED', () => {
   });
 });
 
-// ── examAttemptRecord success ────────────────────────────────────────────────
+// Tests that a successful exam attempt returns all required fields.
+// examStatus must be ATTEMPTED and examOutcome must be PASS or FAIL.
 describe('examAttemptRecord – return shape', () => {
   test('returns all required fields', () => {
     const simId = setupSim();
@@ -185,6 +201,8 @@ describe('examAttemptRecord – return shape', () => {
   });
 });
 
+// Tests the pass/fail determination logic.
+// PASS if studyHoursCompleted >= requiredStudyHours, FAIL otherwise.
 describe('examAttemptRecord – pass/fail outcome', () => {
   test('PASS when studyHoursCompleted meets requiredStudyHours', () => {
     const simId = setupSim();
@@ -206,6 +224,8 @@ describe('examAttemptRecord – pass/fail outcome', () => {
   });
 });
 
+// Tests that taking an exam costs 30 energy points (clamped to 0).
+// Taking an exam must NOT advance timeElapsed or change currentActivity.
 describe('examAttemptRecord – energy cost', () => {
   test('costs 30 energy points', () => {
     const simId = setupSim();
@@ -235,6 +255,9 @@ describe('examAttemptRecord – energy cost', () => {
   });
 });
 
+// Tests that course status and simulation status update correctly after exam attempts.
+// Course FAILS when 2+ exams fail. Course PASSES when all attempted and 2+ pass.
+// Simulation becomes DROPPED_OUT or GRADUATED immediately when conditions are met.
 describe('examAttemptRecord – course and simulation status', () => {
   test('course stays IN_PROGRESS after only 1 exam attempted', () => {
     const simId = setupSim();

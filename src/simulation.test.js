@@ -1,3 +1,5 @@
+// Tests for simulationCreate, simulationStatus and simulationsList in simulation.js
+// Covers: error validation, DROPPED_OUT conditions from energy/happiness/course/exam failures
   import { describe, expect, test, beforeEach } from 'vitest';
   import { simulationCreate, simulationStatus, simulationsList } from './simulation.js'
   import { authRegister } from './auth.js';
@@ -35,6 +37,8 @@
     clear();
   });
 
+  // Tests that simulationStatus returns the correct error when given invalid inputs.
+  // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
   describe('simulationStatus return errors', () => {
     test('Returns an error for invalid StudentId that doesnt exist', () => {
       authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
@@ -57,6 +61,12 @@
     });
   });
 
+  // Tests that simulationStatus correctly sets simulationStatus to DROPPED_OUT
+  // when any of these conditions are met:
+  // - energy reaches 0
+  // - happiness reaches 0
+  // - any course has FAILED status
+  // - 5 or more total exam failures
   describe('simulationStatus returns DROPPED_OUT', () => {
     test('Energy reaches 0 points', () => {
       const universeData = loadData('universes/universe1.json');
