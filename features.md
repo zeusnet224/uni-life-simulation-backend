@@ -28,3 +28,42 @@ Use the same table format as the prescribed interface table in the specification
 |  |  |
 |  |  |
 |  |  |
+
+---
+
+## Iteration 2 Route Design and Traceability
+
+Use this section to document the routes your group designed for the Student Wellbeing Advisor requirements. Your `swagger.yaml` file is still the source of truth for route names, request/response schemas, status codes, and error cases.
+
+### Designed Route Summary
+
+| Feature / story | Route(s) | Purpose | Request/response documented in `swagger.yaml`? |
+| --------------- | -------- | ------- | ---------------------------------------------- |
+| Story 1: View personalised recommendations |  |  |  |
+| Story 2: Understand social connection state |  |  |  |
+| Story 3: Choose between wellbeing activities |  |  |  |
+| Story 4: Discover social opportunities |  |  |  |
+| Story 5: Inspect exam readiness |  |  |  |
+| Story 6: Prioritise the next best action |  |  |  |
+
+### Traceability Table
+
+Your Week 8 design check-in and Week 10 final demo must include a traceability table that maps requirements to implementation evidence.
+
+| Requirement / story | Designed route(s) | Acceptance criteria | HTTP tests | Demo evidence |
+| ------------------- | ----------------- | ------------------- | ---------- | ------------- |
+| Story 1: View personalised recommendations |  |  |  |  |
+| Story 2: Understand social connection state |  |  |  |  |
+| Story 3: Choose between wellbeing activities |  |  |  |  |
+| Story 4: Discover social opportunities |  |  |  |  |
+| Story 5: Inspect exam readiness |  |  |  |  |
+| Story 6: Prioritise the next best action |  |  |  |  |
+
+### Design Notes
+
+Use this section for design decisions that do not fit neatly into `swagger.yaml`, such as:
+- how recommendation scores are calculated;
+- how social connections are represented;
+- how opportunities are loaded or generated;
+- how exam readiness is calculated;
+- assumptions, limitations, or known trade-offs.
