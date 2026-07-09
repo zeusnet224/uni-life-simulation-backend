@@ -1,7 +1,7 @@
 # Data Structure Design
 
-> **Note:** This is a Markdown file (`.md`), not a JavaScript file. You should 
-> design your data structure here using a code block, then implement it in 
+> **Note:** This is a Markdown file (`.md`), not a JavaScript file. You should
+> design your data structure here using a code block, then implement it in
 > `src/dataStore.js` in later iterations.
 > For more information on using code blocks in Markdown, see the [Markdown Guide on Fenced Code Blocks](https://www.markdownguide.org/extended-syntax/#fenced-code-blocks).
 
@@ -42,6 +42,7 @@ let data = {
 
         exams = [
           {
+            studentId: 'z5678910'
             examId: 'E2-COMP1531',
             courseId: 'COMP1531',
             name: 'Final Exam',
