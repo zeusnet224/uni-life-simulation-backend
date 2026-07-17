@@ -2,7 +2,11 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "coverage": "vitest run --coverage"
+    "tsx": "tsx",
+    "tsc": "tsc --noEmit",
+    "lint": "eslint '**/*.ts'",
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch --clear-screen=false --include 'src/config.json' src/server.ts"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.9",
