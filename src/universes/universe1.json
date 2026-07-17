@@ -1,0 +1,28 @@
+{
+  "courses": [
+    {
+      "courseId": "COMP1531",
+      "name": "Software Engineering Fundamentals"
+    }
+  ],
+  "exams": [
+    {
+      "examId": "E1-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Requirements Quiz",
+      "requiredStudyHours": 2
+    },
+    {
+      "examId": "E2-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Design Review",
+      "requiredStudyHours": 3
+    },
+    {
+      "examId": "E3-COMP1531",
+      "courseId": "COMP1531",
+      "name": "Final Exam",
+      "requiredStudyHours": 5
+    }
+  ]
+}

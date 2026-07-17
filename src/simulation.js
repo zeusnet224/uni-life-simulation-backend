@@ -1,3 +1,5 @@
+import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
+import { checkWinLoseConditions } from './action.js';
 import { getData } from './dataStore.js';
 
 // Creates a new simulation instance for a registered student with the given universe data.
@@ -7,10 +9,8 @@ import { getData } from './dataStore.js';
 function simulationCreate(studentId, universeData) {
   const data = getData();
 
-  const student = data.users.find(u => u.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not refer to a valid registered student' };
-  }
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
 
   if (universeData === null || typeof universeData !== 'object' || Array.isArray(universeData)) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must be an object' };
@@ -25,8 +25,6 @@ function simulationCreate(studentId, universeData) {
   }
 
   const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
-
-  const societies = Array.isArray(universeData.societies) ? universeData.societies : [];
 
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
@@ -59,9 +57,7 @@ function simulationCreate(studentId, universeData) {
     },
   });
 
-  return {
-    simulationId,
-  };
+  return { simulationId };
 }
 
 // Returns the current status and stats of a specific simulation.
@@ -69,39 +65,14 @@ function simulationCreate(studentId, universeData) {
 // Returns { simulationStatus, currentActivity, energy, happiness, timeElapsed }
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
 function simulationStatus(studentId, simulationId) {
-  const data = getData();
-  const student = data.users.find(user => user.studentId === studentId);
-  if (!student) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student ID does not exist' };
-  }
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
 
-  const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-  if (!simulation) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-  } else if (simulation.studentId !== studentId ) {
-    return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to given student ID'};
-  }
+  const simulation = findOwnedSimulationOrError(studentId, simulationId);
+  if (isError(simulation)) return simulation;
 
-  // Check win/lose conditions — update simulationStatus to DROPPED_OUT or GRADUATED if conditions met
-  const totalFailures = simulation.universeData.exams.filter(e => e.examOutcome === 'FAIL').length;
-  const anyCourseFailed = simulation.universeData.courses.some(c => c.courseStatus === 'FAILED');
-
-  const allCoursesPassed = simulation.universeData.courses.every(c => c.courseStatus === 'PASSED');
-
-  if (
-    simulation.energy <= 0 ||
-    simulation.happiness <= 0 ||
-    anyCourseFailed ||
-    totalFailures >= 5
-  ) {
-    simulation.simulationStatus = 'DROPPED_OUT';
-  } else if (
-    allCoursesPassed &&
-    simulation.energy > 0 &&
-    simulation.happiness > 0
-  ) {
-    simulation.simulationStatus = 'GRADUATED';
-  }
+  // Reuse the shared win/lose check instead of duplicating the logic here
+  checkWinLoseConditions(simulation);
 
   return {
     simulationStatus: simulation.simulationStatus,
@@ -112,64 +83,104 @@ function simulationStatus(studentId, simulationId) {
   };
 }
 
-// Returns a list of all simulation instances belonging to a given student with summary info.
+// Returns a summary list of all simulation instances belonging to a given student.
 // Each simulation includes simulationId, simulationStatus, currentActivity, timeElapsed.
-// Note: currently returns stub data — not yet fully implemented.
+// Returns { simulations: [{ simulationId, simulationStatus, currentActivity, timeElapsed }] }
+// Errors: INVALID_STUDENT_ID
 function simulationsList(studentId) {
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
+
+  const data = getData();
+  const studentSimulations = data.simulations
+    .filter(sim => sim.studentId === studentId)
+    .map(sim => ({
+      simulationId: sim.simulationId,
+      simulationStatus: sim.simulationStatus,
+      currentActivity: sim.currentActivity,
+      timeElapsed: sim.timeElapsed,
+    }));
+
+  return { simulations: studentSimulations };
+}
+
+// Identifies which exam was being studied for in the most recent action, if any.
+// Returns { examId, name, duration } if the last action was STUDYING.
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, NO_STUDY_ACTION
+function examGetStudyAction(studentId, simulationId) {
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
+
+  const simulation = findOwnedSimulationOrError(studentId, simulationId);
+  if (isError(simulation)) return simulation;
+
+  const lastAction = simulation.actionHistory[simulation.actionHistory.length - 1];
+  if (!lastAction || lastAction.action !== 'STUDYING') {
+    return { error: 'NO_STUDY_ACTION', message: 'The most recent action was not a STUDYING action' };
+  }
+
+  const exam = simulation.universeData.exams.find(e => e.examId === lastAction.examId);
+
   return {
-    simulations: [
-      {
-        simulationId: 1,
-        simulationStatus: 'ACTIVE',
-        currentActivity: 'DOOM_SCROLLING',
-        timeElapsed: 5,
-      }
-    ]
+    examId: exam.examId,
+    name: exam.name,
+    duration: lastAction.duration,
   };
 }
 
-// Given a valid action and duration, the interface allows the caller to apply
-// the action to a simulation and update the relevant state.
-function simulationApplyAction(studentID, simulationID, currentActivity, timeElapsed, examID) {
-  return {
-    simulationID: 1,
-    currentActivity: 'STUDYING',
-    duration: 1,
-    energy: 75,
-    happiness: 60,
-    timeElapsed: 1,
-  }
-}
-
-// The interface allows the caller to identify which exam is being studied for.
-function examGetStudyAction(studentId, simulationId) {
-  return {
-    examId: 'E2-COMP1531',
-    name: 'Midterm quiz',
-    duration: 2
-  }
-}
-
-// The interface makes it possible to determine which action was
-// applied and how long the action lasted
+// Determines which action was most recently applied and how long it lasted.
+// Returns { currentActivity, duration, timeElapsed }.
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, NO_ACTION_PERFORMED
 function simulationGetLastAction(studentId, simulationId) {
-  return {
-    currentActivity: 'STUDYING',
-    duration: 2,
-    timeElapsed: 12
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
+
+  const simulation = findOwnedSimulationOrError(studentId, simulationId);
+  if (isError(simulation)) return simulation;
+
+  const lastAction = simulation.actionHistory[simulation.actionHistory.length - 1];
+  if (!lastAction) {
+    return { error: 'NO_ACTION_PERFORMED', message: 'No actions have been performed on this simulation yet' };
   }
+
+  return {
+    currentActivity: lastAction.action,
+    duration: lastAction.duration,
+    timeElapsed: simulation.timeElapsed,
+  };
 }
 
-// The interface makes it possible to observe that no further
-// actions should be applied to that simulation
-function simulationGetconcludingNotification(studentId, simulationId) {
-  return {
-    simulationStatus: 'GRADUATED',
-    notification: 'This simulation is completed'
+// Signals whether a simulation has ended and no further actions should be applied.
+// Returns { simulationStatus, notification } once GRADUATED or DROPPED_OUT.
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, SIMULATION_NOT_ENDED
+function simulationGetConcludingNotification(studentId, simulationId) {
+  const student = findStudentOrError(studentId);
+  if (isError(student)) return student;
+
+  const simulation = findOwnedSimulationOrError(studentId, simulationId);
+  if (isError(simulation)) return simulation;
+
+  checkWinLoseConditions(simulation);
+
+  if (simulation.simulationStatus === 'ACTIVE') {
+    return { error: 'SIMULATION_NOT_ENDED', message: 'This simulation is still active' };
   }
+
+  const notification = simulation.simulationStatus === 'GRADUATED'
+    ? 'Congratulations, this simulation has GRADUATED. No further actions can be applied.'
+    : 'This simulation has DROPPED_OUT. No further actions can be applied.';
+
+  return {
+    simulationStatus: simulation.simulationStatus,
+    notification,
+  };
 }
 
-export { simulationCreate, simulationStatus, simulationsList };
-
-
-
+export {
+  simulationCreate,
+  simulationStatus,
+  simulationsList,
+  examGetStudyAction,
+  simulationGetLastAction,
+  simulationGetConcludingNotification,
+};

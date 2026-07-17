@@ -1,7 +1,7 @@
 import { describe, expect, test, beforeEach } from 'vitest';
-import { authRegister } from './auth.js';
-import { simulationCreate } from './simulation.js';
-import { clearData, getData } from './dataStore.js';
+import { authRegister } from '../auth.js';
+import { simulationCreate } from '../simulation.js';
+import { clearData, getData } from '../dataStore.js';
 
 const STUDENT_ID = 'z1234567';
 const OTHER_STUDENT_ID = 'z7654321';

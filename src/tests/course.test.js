@@ -1,14 +1,14 @@
-  import { describe, expect, test, beforeEach } from 'vitest';
-  import { clear } from './other.js';
-  import {
-    courseRetrieveCourses,
-    courseRetrieveExams,
-    courseRetrieveCourseDetails,
-    courseRetrieveExamDetails,
-    courseCompletion,
-  } from './course.js';
-  import { authRegister } from './auth.js';
-  import { simulationCreate } from './simulation.js';
+import { describe, expect, test, beforeEach } from 'vitest';
+import { clear } from '../other.js';
+import {
+  courseRetrieveCourses,
+  courseRetrieveExams,
+  courseRetrieveCourseDetails,
+  courseRetrieveExamDetails,
+  courseCompletion,
+} from '../course.js';
+import { authRegister } from '../auth.js';
+import { simulationCreate } from '../simulation.js';
 
   const customUniverse = {
     courses: [

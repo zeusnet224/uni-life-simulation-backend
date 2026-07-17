@@ -1,16 +1,12 @@
-import { getData } from './dataStore.js';
+import { findSimulationOrError, findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 
 // Returns a summary list of all courses in the simulation.
 // Each course includes courseId and name only.
 // Returns { courses: [{ courseId, name }] }
 // Errors: INVALID_SIMULATION
 function courseRetrieveCourses(simulationId) {
-    const data = getData();
-
-    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-    if (!simulation) {
-        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-    }
+    const simulation = findSimulationOrError(simulationId);
+    if (isError(simulation)) return simulation;
 
     return {
         courses: simulation.universeData.courses.map(course => ({
@@ -26,12 +22,8 @@ function courseRetrieveCourses(simulationId) {
 // Errors: INVALID_SIMULATION
 function courseRetrieveExams(simulationId) {
     // returns all exams in the universe, not just attempted ones
-    const data = getData();
-
-    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-    if (!simulation) {
-        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-    }
+    const simulation = findSimulationOrError(simulationId);
+    if (isError(simulation)) return simulation;
 
     return {
         exams: simulation.universeData.exams.map(exam => ({
@@ -48,12 +40,8 @@ function courseRetrieveExams(simulationId) {
 // Returns { course: [{ courseId, name, courseDetails, courseStatus }] }
 // Errors: INVALID_SIMULATION, INVALID_COURSE
 function courseRetrieveCourseDetails(courseId, simulationId) {
-    const data = getData();
-
-    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-    if (!simulation) {
-        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-    }
+    const simulation = findSimulationOrError(simulationId);
+    if (isError(simulation)) return simulation;
 
     const course = simulation.universeData.courses.find(c => c.courseId === courseId);
     if (!course) {
@@ -77,11 +65,8 @@ function courseRetrieveCourseDetails(courseId, simulationId) {
 // Returns { exam: [{ examId, courseId, name, requiredStudyHours }] }
 // Errors: INVALID_SIMULATION, INVALID_EXAM
 function courseRetrieveExamDetails(simulationId, examId) {
-    const data = getData();
-    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-    if (!simulation) {
-        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-    }
+    const simulation = findSimulationOrError(simulationId);
+    if (isError(simulation)) return simulation;
 
     const exam = simulation.universeData.exams.find(e => e.examId === examId);
     if (!exam) {
@@ -105,18 +90,11 @@ function courseRetrieveExamDetails(simulationId, examId) {
 // Returns { course: [{ courseId, courseStatus }] }
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_COURSE
 function courseCompletion(courseId, studentId, simulationId) {
+    const student = findStudentOrError(studentId);
+    if (isError(student)) return student;
 
-    const data = getData();
-
-    const user = data.users.find(u => u.studentId === studentId);
-    if (!user) {
-      return { error: 'INVALID_STUDENT_ID', message: 'Student does not exist' };
-    }
-
-    const simulation = data.simulations.find(sim => sim.simulationId === simulationId);
-    if (!simulation) {
-        return { error: 'INVALID_SIMULATION', message: 'Simulation ID does not exist' };
-    }
+    const simulation = findOwnedSimulationOrError(studentId, simulationId);
+    if (isError(simulation)) return simulation;
 
     const course = simulation.universeData.courses.find(c => c.courseId === courseId);
     if (!course) {

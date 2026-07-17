@@ -2,10 +2,10 @@
 // Covers: all 5 action types, error validation, activity constraints,
 // stat calculations, return value shape, and win/lose conditions
 import { describe, test, expect, beforeEach } from 'vitest';
-import { simulationApplyAction } from './action.js';
-import { authRegister } from './auth.js';
-import { simulationCreate } from './simulation.js';
-import { clear } from './other.js';
+import { simulationApplyAction } from '../action.js';
+import { authRegister } from '../auth.js';
+import { simulationCreate } from '../simulation.js';
+import { clear } from '../other.js';
 
 // simple universe with 1 course and 3 exams for testing
 const SIMPLE_UNIVERSE = {
@@ -22,7 +22,17 @@ const SIMPLE_UNIVERSE = {
 const STUDENT_ID = 'z5555555';
 const PASSWORD   = 'ValidPass1';
 
-// helper to register a student and create a simulation
+////////////////////////////////////////////////////////////////
+// These are helper to register a student and create a simulation
+//Avoids repeating setup code in every test. It does 3 things:
+
+//Calls authRegister from src/auth.js to register a student
+// with studentId z5555555 Calls simulationCreate from simulation.js
+// to create a simulation using SIMPLE_UNIVERSE (A simple universe
+// at the top of the test file to use across all my tests)
+//Returns the simulationId so the test can use it
+////////////////////////////////////////////////////////////////
+
 function setupSim(universe = SIMPLE_UNIVERSE) {
   authRegister(STUDENT_ID, PASSWORD, 'John', 'Smith');
   const { simulationId } = simulationCreate(STUDENT_ID, universe);
@@ -31,9 +41,12 @@ function setupSim(universe = SIMPLE_UNIVERSE) {
 
 // reset state before every test so tests are independent
 beforeEach(() => { clear(); });
+// Call sim here
 
-// Tests that INVALID_ACTION is returned when the action string is not one of the 5 valid types.
-// INVALID_ACTION must be returned before INVALID_DURATION when both are wrong.
+// Tests that INVALID_ACTION is returned when the
+// action string is not one of the 5 valid types.
+// INVALID_ACTION must be returned before INVALID_DURATION
+// when both are wrong.
 describe('INVALID_ACTION errors', () => {
   test('unrecognised action string', () => {
     const simId = setupSim();
@@ -77,18 +90,26 @@ describe('INVALID_DURATION errors', () => {
 // Tests that INVALID_STUDENT_ID is returned when the studentId does not belong to a registered student.
 describe('INVALID_STUDENT_ID errors', () => {
   test('unregistered student', () => {
-    const simId = setupSim();
-    expect(simulationApplyAction('z9999999', simId, 'SLEEPING', 1).error).toBe('INVALID_STUDENT_ID');
+  // No simulation needs to be set up — INVALID_STUDENT_ID is checked before INVALID_SIMULATION
+  expect(simulationApplyAction('z9999999', 1, 'SLEEPING', 1).error).toBe('INVALID_STUDENT_ID');
   });
 });
 
 // Tests that INVALID_SIMULATION is returned when the simulationId does not exist
 // or when the simulation belongs to a different student.
+////////////////////////////////////////////////////////////////
+// Tests that a simulationId of 99999 that does not exist in data.simulations
+// returns INVALID_SIMULATION
+////////////////////////////////////////////////////////////////
 describe('INVALID_SIMULATION errors', () => {
   test('non-existent simulationId', () => {
     setupSim();
     expect(simulationApplyAction(STUDENT_ID, 99999, 'SLEEPING', 1).error).toBe('INVALID_SIMULATION');
   });
+////////////////////////////////////////////////////////////////
+// Tests that a valid simulation owned by z5555555 cannot be
+// accessed by z6666666 — returns INVALID_SIMULATION
+////////////////////////////////////////////////////////////////
   test('simulation belongs to a different student', () => {
     const simId = setupSim();
     authRegister('z6666666', PASSWORD, 'Jane', 'Doe');
@@ -98,6 +119,11 @@ describe('INVALID_SIMULATION errors', () => {
 
 // Tests that SIMULATION_ENDED is returned when trying to perform an action
 // on a simulation that has already GRADUATED or DROPPED_OUT.
+///////////////////////////////////////////////////////////////
+// Tests that after draining energy to 0 through studying,
+// the simulation becomes DROPPED_OUT and any further action
+// returns SIMULATION_ENDED
+////////////////////////////////////////////////////////////////
 describe('SIMULATION_ENDED errors', () => {
   test('returns SIMULATION_ENDED after simulation DROPPED_OUT', () => {
     const simId = setupSim();
@@ -132,6 +158,7 @@ describe('STUDYING consecutive-hours constraint', () => {
   test('allows exactly 3 consecutive hours', () => {
     const simId = setupSim();
     const result = simulationApplyAction(STUDENT_ID, simId, 'STUDYING', 3, 'E1-COMP1531');
+    //Expect to be VALID
     expect(result.error).toBeUndefined();
     expect(result.timeElapsed).toBe(3);
   });
@@ -144,6 +171,10 @@ describe('STUDYING consecutive-hours constraint', () => {
     simulationApplyAction(STUDENT_ID, simId, 'STUDYING', 2, 'E1-COMP1531');
     expect(simulationApplyAction(STUDENT_ID, simId, 'STUDYING', 2, 'E1-COMP1531').error).toBe('INVALID_ACTION');
   });
+  ////////////////////////////////////////////////////////////////
+  //Tests that after studying 3 hours, sleeping 1 hour resets
+  // the streak and studying can resume. Checks no error and timeElapsed is 5
+  ////////////////////////////////////////////////////////////////
   test('allows studying again after 1-hour non-study break', () => {
     const simId = setupSim();
     simulationApplyAction(STUDENT_ID, simId, 'STUDYING', 3, 'E1-COMP1531');
@@ -175,6 +206,11 @@ describe('EXERCISING constraint: eating window', () => {
     simulationApplyAction(STUDENT_ID, simId, 'EATING', 1);
     expect(simulationApplyAction(STUDENT_ID, simId, 'EXERCISING', 1).error).toBeUndefined();
   });
+  ////////////////////////////////////////////////////////////////
+  //Tests that exercising for 5 hours after eating at hour 1 returns
+  // INVALID_ACTION — exercise would end at hour 6, 6 minus 1 equals
+  // 5 which is greater than 4
+  ////////////////////////////////////////////////////////////////
   test('INVALID_ACTION when eating ended more than 4 hours before exercise ends', () => {
     const simId = setupSim();
     // eat at hour 0-1, then pass 4+ hours before exercising
@@ -201,7 +237,11 @@ describe('EXERCISING constraint: eating window', () => {
     expect(simulationApplyAction(STUDENT_ID, simId, 'EXERCISING', 5).error).toBe('INVALID_ACTION');
   });
 });
-
+////////////////////////////////////////////////////////////////
+//Tests that exercising twice in a row without waiting 1 hour
+// returns INVALID_ACTION — first exercise ends at hour 2, trying
+// again at hour 2 violates the cooldown
+////////////////////////////////////////////////////////////////
 describe('EXERCISING constraint: 1-hour cooldown', () => {
   test('INVALID_ACTION within cooldown period', () => {
     const simId = setupSim();
@@ -217,12 +257,18 @@ describe('EXERCISING constraint: 1-hour cooldown', () => {
     simulationApplyAction(STUDENT_ID, simId, 'DOOM_SCROLLING', 1);
     // re-eat so the 4 hour window is satisfied for second exercise
     simulationApplyAction(STUDENT_ID, simId, 'EATING', 1);
+    //Since no error is returned this is allowed there is an hour break in
+    // between excercsing and studying
     expect(simulationApplyAction(STUDENT_ID, simId, 'EXERCISING', 1).error).toBeUndefined();
   });
 });
 
 // Tests that each action applies the correct energy and happiness changes per hour.
 // Stats are clamped to the 0-100 range after every update.
+ ////////////////////////////////////////////////////////////////
+// Label: Tests DOOM_SCROLLING for 2 hours. Energy 100 plus 6 equals 106 clamped to 100.
+// Happiness 50 plus 4 equals 54
+ ////////////////////////////////////////////////////////////////
 describe('Stat calculations', () => {
   test('DOOM_SCROLLING: energy +3/hr, happiness +2/hr', () => {
     const simId = setupSim();
@@ -267,6 +313,11 @@ describe('Stat calculations', () => {
     expect(result.energy).toBe(100);
     expect(result.happiness).toBe(100);
   });
+   ////////////////////////////////////////////////////////////////
+  // Tests the full dropout flow — draining energy to 0 through repeated
+  // studying causes simulationStatus to become DROPPED_OUT and the next
+  // action returns SIMULATION_ENDED
+ ////////////////////////////////////////////////////////////////
   test('energy hitting 0 triggers DROPPED_OUT', () => {
     const simId = setupSim();
     simulationApplyAction(STUDENT_ID, simId, 'STUDYING', 3, 'E1-COMP1531');
@@ -279,6 +330,10 @@ describe('Stat calculations', () => {
 });
 
 // Tests that a successful action returns all required fields with correct values.
+ ////////////////////////////////////////////////////////////////
+ //Tests that the return value has all 6 required fields — simulationId, currentActivity, duration, energy, happiness, timeElapsed
+//javascript matches the vlue inputed
+  ////////////////////////////////////////////////////////////////
 describe('Return value shape', () => {
   test('returns all required fields', () => {
     const simId = setupSim();

@@ -1,9 +1,8 @@
 // Tests for authRegister and authLogin in auth.js
 // Covers: valid registration, all invalid input cases, valid login, and invalid credentials
-import { authRegister, authLogin } from './auth.js';
-import { clearData } from './dataStore.js';
+import { authRegister, authLogin } from '../auth.js';
+import { clearData } from '../dataStore.js';
 import { describe, test, expect, beforeEach } from 'vitest';
-import { clearData } from './dataStore.js';
 
 beforeEach(() => {
   clearData();

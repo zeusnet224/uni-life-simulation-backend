@@ -1,8 +1,8 @@
 import { describe, expect, test, beforeEach } from 'vitest';
-import { authRegister } from './auth.js';
-import { simulationCreate, simulationStatus } from './simulation.js';
-import { clear } from './other.js';
-import { clearData, getData } from './dataStore.js';
+import { authRegister } from '../auth.js';
+import { simulationCreate, simulationStatus } from '../simulation.js';
+import { clear } from '../other.js';
+import { clearData, getData } from '../dataStore.js';
 
 const STUDENT_ID = 'z1234567';
 const PASSWORD = 'ValidPass1';

@@ -1,9 +1,9 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { examStudyProgress, examAttemptRecord } from './exam.js';
-import { simulationApplyAction } from './action.js';
-import { authRegister } from './auth.js';
-import { simulationCreate } from './simulation.js';
-import { clear } from './other.js';
+import { examStudyProgress, examAttemptRecord } from '../exam.js';
+import { simulationApplyAction } from '../action.js';
+import { authRegister } from '../auth.js';
+import { simulationCreate } from '../simulation.js';
+import { clear } from '../other.js';
 
 // simple universe with 1 course and 3 exams for testing
 const SIMPLE_UNIVERSE = {
