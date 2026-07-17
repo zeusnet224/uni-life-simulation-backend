@@ -188,7 +188,7 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   simulation.happiness = clampStat(simulation.happiness + effects.happinessPerHour * duration);
 
   ////////////////////////////////////////////////////////////////
-  // CRITERIA 2: Given a studying action, the interface allows 
+  // CRITERIA 2: Given a studying action, the interface allows
   // the caller to identify which exam is being studied for.
   ////////////////////////////////////////////////////////////////
   // Update study hours for the target exam if action is STUDYING
@@ -202,8 +202,8 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   simulation.currentActivity = action;
 
   ////////////////////////////////////////////////////////////////
-  // CRITERIA 3: Given an action is applied, the interface makes it 
-  // possible to determine which action was applied and how long the 
+  // CRITERIA 3: Given an action is applied, the interface makes it
+  // possible to determine which action was applied and how long the
   // action lasted.
   ////////////////////////////////////////////////////////////////
   // Update study hours for the target exam if action is STUDYING

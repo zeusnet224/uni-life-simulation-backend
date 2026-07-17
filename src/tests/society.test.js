@@ -1,8 +1,8 @@
   import { describe, expect, test, beforeEach } from 'vitest';
-  import { simulationCreate, simulationStatus, simulationsList } from './simulation.js'
-  import { authRegister } from './auth.js';
-  import { clear } from './other.js';
-  import { societyJoin, societyList, societyAttend } from './society.js';
+  import { simulationCreate, simulationStatus, simulationsList } from '../simulation.js'
+  import { authRegister } from '../auth.js';
+  import { clear } from '../other.js';
+  import { societyJoin, societyList, societyAttend } from '../society.js';
 
   const customUniverse = {
     courses: [
