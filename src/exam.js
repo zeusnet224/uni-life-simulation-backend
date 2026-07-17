@@ -40,7 +40,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
     const simulation = findOwnedSimulationOrError(studentId, simulationId);
     if (isError(simulation)) return simulation;
 
-    // Simulation must be ACTIVE
+    // CRITERIA 5: Simulation must be ACTIVE
     if (simulation.simulationStatus !== 'ACTIVE') {
         return { error: 'SIMULATION_ENDED', message: 'Cannot attempt exams in a completed simulation' };
     }
@@ -51,7 +51,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
 
-    // Prevent re-attempt
+    // CRITERIA 3: Prevent re-attempt
     if (exam.examStatus === 'ATTEMPTED') {
         return { error: 'ALREADY_ATTEMPTED', message: 'You have already attempted this exam'};
     }
@@ -62,14 +62,16 @@ function examAttemptRecord(examId, simulationId, studentId) {
         simulation.energy = 0;
     }
 
-    // Determine pass or fail
+    // CRITERIA 3: Determine pass or fail
     exam.examStatus = 'ATTEMPTED';
+    // CRITERIA 2
     if (exam.studyHoursCompleted >= exam.requiredStudyHours) {
         exam.examOutcome = 'PASS';
     } else {
         exam.examOutcome = 'FAIL';
     }
 
+    // CRITERIA 4
     // This line gets all the exams that belong to the same
     // course as the exam just attempted. Goes through every
     // exam in the simulation and keeps only the ones where
@@ -96,6 +98,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
         course.courseStatus = 'PASSED';
     }
 
+    // CRITERIA 5
     // checkWinLoseConditions updates the simulationStatus
     // directly on the simulation object in src/dataStore.js.
     // The next time someone calls examAttemptRecord or
