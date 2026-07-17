@@ -3,7 +3,6 @@
 import { authRegister, authLogin } from '../auth.js';
 import { clearData } from '../dataStore.js';
 import { describe, test, expect, beforeEach } from 'vitest';
-import { clearData } from '../dataStore.js';
 
 beforeEach(() => {
   clearData();
