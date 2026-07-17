@@ -69,7 +69,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
     if (simulation.studentId !== studentId) {
         return { error: 'INVALID_SIMULATION', message: 'Simulation does not belong to the given student' };
     }
-
+// CRITERIA 5
 // Simulation must be ACTIVE
     if (simulation.simulationStatus !== 'ACTIVE') {
         return { error: 'SIMULATION_ENDED', message: 'Cannot attempt exams in a completed simulation' };
@@ -80,7 +80,7 @@ function examAttemptRecord(examId, simulationId, studentId) {
     if (!exam) {
         return { error: 'INVALID_EXAM', message: 'Exam ID does not exist'};
     }
-
+// CRITERIA 3
     // Prevent re-attempt
     if (exam.examStatus === 'ATTEMPTED') {
         return { error: 'ALREADY_ATTEMPTED', message: 'You have already attempted this exam'};
@@ -92,15 +92,21 @@ function examAttemptRecord(examId, simulationId, studentId) {
         simulation.energy = 0;
     }
 
+// Criteria 3
 // Determine pass or fail
     exam.examStatus = 'ATTEMPTED';
+// Criteria 2
     if (exam.studyHoursCompleted >= exam.requiredStudyHours) {
         exam.examOutcome = 'PASS';
     } else {
         exam.examOutcome = 'FAIL';
     }
-
-// Update course status based on all exam outcomes
+// Criteria 4
+// This line gets all the exams that belong to the same 
+// course as the exam just attempted. Goes through every 
+// exam in the simulation and keeps only the  ones where 
+// courseId matches the courseId of the exam that was 
+// just attempted. 
     const courseExams = simulation.universeData.exams.filter(e => e.courseId === exam.courseId);
     const course = simulation.universeData.courses.find(c => c.courseId === exam.courseId);
 
@@ -122,9 +128,16 @@ function examAttemptRecord(examId, simulationId, studentId) {
         course.courseStatus = 'PASSED';
     }
 
+    // Criteria 5
 // check win/lose conditions immediately after exam
+//checkWinLoseConditions updates the simulationStatus 
+// directly on the simulation object in src/dataStore.js. 
+// The next time someone calls examAttemptRecord or 
+// simulationApplyAction
     checkWinLoseConditions(simulation);
 
+// examStatus: ATTEMPTED not ATTEMPTED
+//examOutcome = PASSED or FAILED
     return {
         exam: [
             {
