@@ -3,7 +3,7 @@ import { getData } from './dataStore.js';
 // Stat effects per hour for each action (from spec section 2.1.4)
 // Each action changes energy and happiness by these amounts per hour of duration
 const ACTION_EFFECTS = {
-  DOOM_SCROLLING: { energyPerHour: 3,   happinessPerHour: 2  },
+  DOOM_SCROLLING: { energyPerHour: 3,    happinessPerHour: 2  },
   STUDYING:       { energyPerHour: -15,  happinessPerHour: -5 },
   SLEEPING:       { energyPerHour: 15,   happinessPerHour: 2  },
   EATING:         { energyPerHour: 10,   happinessPerHour: 3  },
