@@ -1,6 +1,6 @@
 // Do not delete this file
 import { describe, expect, test } from 'vitest';
-import { echo } from './newecho';
+import { echo } from './newecho.js';
 
 describe('echo', () => {
   test('returns the provided value', () => {
