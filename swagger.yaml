@@ -1,0 +1,666 @@
+swagger: "2.0"
+info:
+  title: Unigotchi API
+  description: |
+    API description for Unigotchi - a university life simulation game.
+    This file contains the minimal prescribed routes for iteration 2. Groups must add their own designed routes based on the Student Wellbeing Advisor feature requirements, user stories, and acceptance criteria in the project specification.
+    All error strings are required to be clear descriptive messages. The descriptive message won't change the marks you receive when being automarked as long as you make an attempt for each one to be custom, but they will improve usability.
+    See the schema tab for greater explanations on each attribute of an object. Some schemas are reusable design support for group-designed routes and do not imply that the corresponding routes are prescribed.
+  version: 1.0.0
+  license:
+    name: UNSW course specification
+    url: https://www.unsw.edu.au
+ 
+schemes:
+  - http
+
+tags:
+  - name: "Iteration 2 (Prescribed Core)"
+    description: Required iteration 2 routes with prescribed request and response formats
+  - name: "Iteration 2 (Designed)"
+    description: Routes designed by your group from your user stories and acceptance criteria
+
+securityDefinitions:
+  SessionAuth:
+    type: apiKey
+    in: header
+    name: session
+
+security:
+  - SessionAuth: []
+
+x-components:
+  prim:
+    ErrorMessage:
+      type: string
+      example: "Descriptive error message here"
+    ErrorType:
+      type: string
+      example: "ERROR_TYPE"
+    StudentId:
+      type: string
+      example: z5555555
+      description: Student ID in the format of a lowercase 'z' followed by exactly 7 digits
+    Password:
+      type: string
+      example: alexchen123
+    NameFirst:
+      type: string
+      example: Alex
+    NameLast:
+      type: string
+      example: Chen
+    Session:
+      type: string
+      example: "23748"
+    SimulationId:
+      type: integer
+      example: 5546
+    FriendId:
+      type: integer
+      example: 1234
+    ClubId:
+      type: string
+      example: csesoc
+      description: 2-20 characters, alphanumeric and underscores only
+    CourseId:
+      type: string
+      example: COMP1531
+      description: Must be 4 uppercase letters (A-Z) followed by 4 digits (e.g., COMP1531, MATH1081)
+    ExamId:
+      type: string
+      example: E1-COMP1531
+      description: 2-20 characters
+    Activity:
+      type: string
+      enum: [DOOM_SCROLLING, STUDYING, SLEEPING, EATING, EXERCISING]
+      description: Prescribed core activities. Groups may define additional activity values for their own designed routes if needed.
+    SimulationStatus:
+      type: string
+      enum: [ACTIVE, GRADUATED, DROPPED_OUT]
+    Timestamp:
+      type: integer
+      example: 1683019484
+      description: In seconds. You can find more information here https://en.wikipedia.org/wiki/Unix_time
+    Energy:
+      type: integer
+      example: 75
+      description: Energy level from 0-100 points (not percentage)
+    Happiness:
+      type: integer
+      example: 60
+      description: Happiness level from 0-100 points (not percentage)
+    TimeElapsed:
+      type: integer
+      example: 24
+      description: Time elapsed in hours since simulation started
+    UniverseName:
+      type: string
+      example: unsw2025
+      description: Name of a universe (matches a file in the universes folder without the .json suffix). Can only contain alphanumeric characters, dashes, and underscores.
+    Duration:
+      type: integer
+      minimum: 1
+      example: 2
+      description: Duration in hours (whole hours only). Minimum 1 hour required for all actions.
+    StudyHours:
+      type: integer
+      example: 20
+      description: Number of study hours required for an exam
+    WeeklyHours:
+      type: integer
+      example: 5
+      description: Hours per week commitment
+    HappinessBonus:
+      type: integer
+      example: 5
+      description: Reusable happiness or wellbeing effect value for group-designed features. This is design-support data, not a prescribed automark formula unless your own documented route design says how it is applied.
+    AcademicBonus:
+      type: integer
+      example: 1
+      description: Reusable academic effect value for group-designed opportunities, clubs, societies, events, or recommendation/readiness models. This is design-support data, not a prescribed exam formula.
+
+  group:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Alex Chen
+          description: Constructed as nameFirst + ' ' + nameLast
+        studentId:
+          type: string
+          example: z5555555
+        numSimulations:
+          type: integer
+          example: 5
+          description: Lifetime count of simulations successfully started by this student. This increments on successful simulation creation and is reset only when all application state is cleared.
+        numGraduations:
+          type: integer
+          example: 2
+          description: Lifetime count of this student's simulations that have transitioned to GRADUATED. Count each simulation at most once, and reset only when all application state is cleared.
+
+    SimulationSummary:
+      type: object
+      properties:
+        simulationId:
+          $ref: '#/x-components/prim/SimulationId'
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        createdAt:
+          $ref: '#/x-components/prim/Timestamp'
+
+    SimulationFull:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        energy:
+          $ref: '#/x-components/prim/Energy'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+
+    Friend:
+      type: object
+      properties:
+        friendId:
+          $ref: '#/x-components/prim/FriendId'
+        name:
+          type: string
+          example: Jordan Lee
+        happinessBonus:
+          type: integer
+          example: 3
+          description: Happiness or wellbeing bonus used by group-designed social features. Groups should document how this value affects activities, plans, readiness, or recommendations.
+        addedAt:
+          $ref: '#/x-components/prim/Timestamp'
+
+    Club:
+      type: object
+      properties:
+        clubId:
+          $ref: '#/x-components/prim/ClubId'
+        name:
+          type: string
+          example: CSESoc
+          description: Club name (2-40 characters)
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        isJoined:
+          type: boolean
+          example: false
+
+    Course:
+      type: object
+      properties:
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Software Engineering Fundamentals
+          description: Course name (2-40 characters)
+        courseStatus:
+          type: string
+          enum: [IN_PROGRESS, PASSED, FAILED]
+          example: IN_PROGRESS
+          description: |
+            Course status based on exam outcomes:
+            - IN_PROGRESS: Initial status, exams being attempted
+            - PASSED: At least 50% of exams (2 out of 3) passed AND all exams in the course have been attempted
+            - FAILED: 2 or more exams failed (cannot reach 50% threshold), triggers dropout
+            Note: A student must attempt all 3 exams in a course before it can be marked as PASSED. Exam retakes are not allowed.
+
+    ExamSummary:
+      type: object
+      properties:
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Midterm Exam
+          description: Exam name (2-40 characters)
+      description: Summary exam information used for listings.
+
+    Exam:
+      type: object
+      properties:
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Midterm Exam
+          description: Exam name (2-40 characters)
+        requiredStudyHours:
+          $ref: '#/x-components/prim/StudyHours'
+        studyHoursCompleted:
+          type: integer
+          example: 30
+        passChance:
+          type: integer
+          example: 0
+          description: Optional academic progress or readiness-related value for groups that reuse this schema in designed features. Prescribed exam evaluation is deterministic and remains governed by the README exam rules.
+        isPassed:
+          type: boolean
+          example: false
+          description: Whether the exam has been passed after it has been attempted and evaluated. Before an exam is attempted, implementations should expose this field consistently with their documented response shape, but it must not imply that an unattempted exam has been evaluated.
+      description: All exams are weighted equally. Each course has 3 exams, and at least 2 must be passed (50% pass rate) to pass the course. If 2 or more exams are failed in a course, that course fails and triggers dropout.
+
+  path:
+    StudentIdPath:
+      in: path
+      name: studentId
+      required: true
+      type: string
+    SimulationId:
+      in: path
+      name: simulationId
+      required: true
+      type: integer
+    FriendId:
+      in: path
+      name: friendId
+      required: true
+      type: integer
+    ClubId:
+      in: path
+      name: clubId
+      required: true
+      type: string
+    CourseId:
+      in: path
+      name: courseId
+      required: true
+      type: string
+    ExamId:
+      in: path
+      name: examId
+      required: true
+      type: string
+    UniverseName:
+      in: path
+      name: universeName
+      required: true
+      type: string
+
+  header:
+    Session:
+      in: header
+      name: session
+      required: true
+      type: string
+
+  body:
+    Register:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          password:
+            $ref: '#/x-components/prim/Password'
+          nameFirst:
+            $ref: '#/x-components/prim/NameFirst'
+          nameLast:
+            $ref: '#/x-components/prim/NameLast'
+    Login:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          password:
+            $ref: '#/x-components/prim/Password'
+    UserDetailsUpdate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          nameFirst:
+            $ref: '#/x-components/prim/NameFirst'
+          nameLast:
+            $ref: '#/x-components/prim/NameLast'
+    UserPasswordUpdate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          oldPassword:
+            $ref: '#/x-components/prim/Password'
+          newPassword:
+            $ref: '#/x-components/prim/Password'
+    SimulationCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeName
+        properties:
+          universeName:
+            $ref: '#/x-components/prim/UniverseName'
+    SimulationCreateV1:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeData
+        properties:
+          universeData:
+            type: object
+            description: The full universe configuration object passed directly in the request body (iteration 1 style).
+    SimulationAction:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - action
+          - duration
+        properties:
+          action:
+            $ref: '#/x-components/prim/Activity'
+          duration:
+            $ref: '#/x-components/prim/Duration'
+          targetId:
+            type: string
+            description: Required when action is STUDYING, specifying which exam to study for. Groups may define additional targetId meanings for their own designed activities in their designed routes.
+    FriendAdd:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          friendName:
+            type: string
+            example: Jordan Lee
+            description: Name of the NPC friend to add
+    UniverseCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeName
+          - universeData
+        properties:
+          universeName:
+            $ref: '#/x-components/prim/UniverseName'
+          universeData:
+            type: object
+            description: A universe JSON configuration. Prescribed simulations require courses and exams; group-designed features may extend this with opportunities, clubs, societies, events, or equivalent structures.
+
+  return:
+    Session:
+      type: object
+      properties:
+        session:
+          $ref: '#/x-components/prim/Session'
+    Error:
+      properties:
+        error:
+          type: string
+          $ref: '#/x-components/prim/ErrorType'
+        message:
+          type: string
+          $ref: '#/x-components/prim/ErrorMessage'
+    Empty:
+      type: object
+    User:
+      type: object
+      properties:
+        user:
+          $ref: '#/x-components/group/User'
+    SimulationId:
+      type: object
+      properties:
+        simulationId:
+          $ref: '#/x-components/prim/SimulationId'
+    SimulationList:
+      type: object
+      properties:
+        simulations:
+          type: array
+          items:
+            $ref: '#/x-components/group/SimulationSummary'
+    SimulationStatus:
+      $ref: '#/x-components/group/SimulationFull'
+    FriendList:
+      type: object
+      properties:
+        friends:
+          type: array
+          items:
+            $ref: '#/x-components/group/Friend'
+    FriendId:
+      type: object
+      properties:
+        friendId:
+          $ref: '#/x-components/prim/FriendId'
+    ClubList:
+      type: object
+      properties:
+        clubs:
+          type: array
+          items:
+            $ref: '#/x-components/group/Club'
+    ClubDetails:
+      $ref: '#/x-components/group/Club'
+    CourseList:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: '#/x-components/group/Course'
+    CourseDetails:
+      $ref: '#/x-components/group/Course'
+    ExamList:
+      type: object
+      properties:
+        exams:
+          type: array
+          items:
+            $ref: '#/x-components/group/ExamSummary'
+    ExamDetails:
+      $ref: '#/x-components/group/Exam'
+    ExamTakeResult:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [PASS, FAIL]
+          example: PASS
+        simulationStatus:
+          type: string
+          enum: [ACTIVE, GRADUATED, DROPPED_OUT]
+          example: ACTIVE
+          description: Updated simulation status after taking exam
+    UniverseList:
+      type: object
+      properties:
+        universes:
+          type: array
+          items:
+            type: string
+            example: unsw2025
+          description: List of available universe names (file names without .json suffix)
+    UniverseDetails:
+      type: object
+      description: A full universe JSON configuration object. Groups may reuse this schema for designed routes that manage universe configurations.
+
+paths:
+
+  # ==================== AUTH ROUTES ====================
+
+  /auth/register:
+    post:
+      operationId: authRegister
+      security: []
+      summary: Register a new user
+      description: Takes in information about a new student and registers them in the system, returning a session token.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/body/Register'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Session'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_STUDENT_ID**
+              - Student ID is used by another user
+              - Student ID is not in the format of a lowercase 'z' followed by exactly 7 digits (e.g., z1234567)
+            - **INVALID_FIRST_NAME**
+              - NameFirst contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
+              - NameFirst is less than 2 characters or more than 20 characters
+            - **INVALID_LAST_NAME**
+              - NameLast contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
+              - NameLast is less than 2 characters or more than 20 characters
+            - **INVALID_PASSWORD**
+              - Password is less than 8 characters
+              - Password does not contain at least one number and at least one letter
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /auth/login:
+    post:
+      operationId: authLogin
+      security: []
+      summary: Login a user
+      description: Takes in information about a student to determine if they can log in, returning a session token.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/body/Login'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Session'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_CREDENTIALS**
+              - Student ID does not exist
+              - Password is not correct for the given student ID
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  # ==================== SIMULATION ROUTES ====================
+
+  /simulations:
+    post:
+      operationId: simulationCreate
+      summary: Create a new simulation
+      description: |
+        Start a new simulation instance for the authenticated student by passing the universe configuration object directly in the request body.
+        The simulation starts in DOOM_SCROLLING state with 100 energy and 50 happiness points.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SimulationCreateV1'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationId'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_UNIVERSE**
+              - Universe data is empty or not a valid object
+              - Universe data is malformed or missing required fields
+              - CourseId does not follow format: 4 uppercase letters (A-Z) followed by 4 digits
+              - Course name or exam name is less than 2 or more than 40 characters
+              - ExamId is less than 2 or more than 20 characters
+            - **MAX_SIMULATIONS**
+              - Student already has 5 simulations
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}:
+    get:
+      operationId: simulationGet
+      summary: Get simulation status
+      description: Get the current status and stats of a specific simulation.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationStatus'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Valid session is provided, but simulation does not belong to the authenticated student, or simulation doesn't exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  # ==================== OTHER ROUTES ====================
+
+  /clear:
+    delete:
+      operationId: clear
+      security: []
+      summary: Reset application state
+      description: Reset the state of the application back to the start.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Empty'
+
+  # ==================== DESIGNED ROUTES ====================
+  # Copy your group-designed routes into this file below this comment.
+  # These routes should satisfy the Student Wellbeing Advisor requirements in section 4.5 of README.md.
+  # Designed routes that mutate a simulation or simulation-owned state should reject ended simulations.
+  # You may reuse, adapt, or replace the friend/club/course/universe schemas above, and should document any opportunity schema your group introduces.
+  # Each route should include a summary, description, parameters, response schemas, and error cases.
