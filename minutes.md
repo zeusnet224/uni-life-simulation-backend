@@ -393,3 +393,76 @@ Monday
 - Is there a minimum acceptable coverage percentage we should be targeting by the Week 8 check-in?
 
 ---
+## Iter2-07-Saturday
+
+### Meeting Information
+
+- **Date/Time:**
+  18/07/2026 11:00-12:30pm
+- **Week:**
+  Week 7
+- **Attendees:**
+  - Katrina Chung
+  - Laya Madhan
+  - Rami Khaldoon
+  - Athena Lam
+  - Saniya D souza
+
+- **Meeting Host:**
+  Katrine Chung
+
+- **Location/Platform:**
+  MS Teams
+
+### Agenda
+- Review code quality across the codebase following yesterday's TypeScript check-in
+- Identify remaining code quality issues that need fixing before Week 8
+- Assign the 6 Student Wellbeing Advisor stories to individual group members
+- Confirm everyone is responsible for reviewing and cleaning up TypeScript conversion
+  in their own assigned areas
+- Finalise task assignments on the issue board ahead of the Week 8 design check-in
+
+### Discussion Points
+
+- **Topic 1: Code quality review**
+  - Went through the codebase as a group and realised there was more cleanup needed than initially
+    thought to meet the code quality expectations for Iteration 2.
+  - Identified specific files/functions with leftover JavaScript patterns, inconsistent typing, unclear
+    naming, or repeated logic that needed to be addressed.
+
+- **Topic 2: TypeScript conversion follow-up**
+  - Agreed that although the initial conversion is done and `npm run tsc` passes, each member is
+    responsible for reviewing and refining the TypeScript in the areas they work on going forward (e.g. removing `any` types, adding proper interfaces, fixing type errors introduced by new features).
+  - Confirmed this is now an ongoing shared responsibility rather than a one-off task assigned to a
+    single person.
+
+- **Topic 3: Assigning Student Wellbeing Advisor stories**
+  - Went through the 6 baseline user stories (balanced plan, social support, wellbeing activities,
+    opportunities, academic readiness, recommendations) and assigned one story to each group member:
+    - Story 1 (Plan a balanced week): Laya
+    - Story 2 (Build social support): Saniya
+    - Story 3 (Choose between wellbeing activities): Athena
+    - Story 4 (Join opportunities with trade-offs): Rami
+    - Story 5 (Explain academic readiness): Katrina
+    - Story 6 (Recommend the next action): Athena
+  - Each person is responsible for designing their route(s) in swagger.yaml, writing acceptance
+    criteria, implementing the route, and writing HTTP tests for their assigned story.
+
+- **Topic 4: Week 8 check-in task distribution**
+  - Broke down remaining Week 8 check-in requirements (TypeScript demo, swagger.yaml design
+    presentation, pipeline/coverage evidence) into individual tasks.
+  - Assigned each task to a group member and logged them on the GitLab issue board with clear
+    descriptions.
+  - Agreed on a timeline for completing designs and stubs before the Week 8 lab.
+
+### Action Items / Reminders
+- Each member to clean up code quality issues in their own assigned areas before Week 8
+- Each member to review and tighten TypeScript typing in the sections they touch going forward
+- Each member to complete their assigned Student Wellbeing Advisor story design in swagger.yaml
+- Update GitLab issue board so all Week 8 tasks are assigned and tracked correctly
+- Push code quality fixes via reviewed merge requests, not directly to master
+- Re-run lint, tsc, tests, and coverage after fixes to confirm the pipeline still passes
+
+### Questions for Tutor
+- How much detail is expected in swagger.yaml for the designed routes at the Week 8 check-in stage,
+  versus the final submission?
