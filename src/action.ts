@@ -1,9 +1,10 @@
 import { getData } from './dataStore.js';
+import { Simulation, ActionType, Result } from './types.js';
 
 // Stat effects per hour for each action (from spec section 2.1.4)
 // Each action changes energy and happiness by these amounts per hour of duration
-const ACTION_EFFECTS = {
-  DOOM_SCROLLING: { energyPerHour: 3,    happinessPerHour: 2  },
+const ACTION_EFFECTS: Record<ActionType, { energyPerHour: number; happinessPerHour: number }> = {
+  DOOM_SCROLLING: { energyPerHour: 3,   happinessPerHour: 2  },
   STUDYING:       { energyPerHour: -15,  happinessPerHour: -5 },
   SLEEPING:       { energyPerHour: 15,   happinessPerHour: 2  },
   EATING:         { energyPerHour: 10,   happinessPerHour: 3  },
@@ -11,18 +12,19 @@ const ACTION_EFFECTS = {
 };
 
 // The 5 valid action types a student can perform in a simulation
-const VALID_ACTIONS = ['DOOM_SCROLLING', 'STUDYING', 'SLEEPING', 'EATING', 'EXERCISING'];
+const VALID_ACTIONS: ActionType[] = ['DOOM_SCROLLING', 'STUDYING', 'SLEEPING', 'EATING', 'EXERCISING'];
 
 // Clamp a stat value to the 0-100 range
-function clampStat(value) {
+function clampStat(value: number): number {
   if (value < 0) return 0;
   if (value > 100) return 100;
   return value;
 }
+
 // CRITERIA 5
 // Check win/lose conditions and update simulationStatus immediately.
 // Called after every action and every exam attempt.
-function checkWinLoseConditions(simulation) {
+function checkWinLoseConditions(simulation: Simulation): void {
   // Count total exam failures across the whole simulation
   let totalExamFailures = 0;
   for (const exam of simulation.universeData.exams) {
@@ -62,7 +64,7 @@ function checkWinLoseConditions(simulation) {
 // Max 3 consecutive hours, then must do another activity for at least 1 hour.
 // Constraints are checked based on when the action ENDS not when it starts.
 // Returns 'INVALID_ACTION' if violated, null if OK.
-function checkStudyingConstraint(simulation, duration) {
+function checkStudyingConstraint(simulation: Simulation, duration: number): string | null {
   const history = simulation.actionHistory;
 
   // Count consecutive study hours at the end of history
@@ -87,7 +89,7 @@ function checkStudyingConstraint(simulation, duration) {
 // Rule 1: must have eaten within last 4 hours of when exercise ends.
 // Rule 2: 1-hour cooldown from when previous exercise session ended.
 // Returns 'INVALID_ACTION' if violated, null if OK.
-function checkExercisingConstraint(simulation, duration) {
+function checkExercisingConstraint(simulation: Simulation, duration: number): string | null {
   const history = simulation.actionHistory;
   const currentTime = simulation.timeElapsed;
   const actionEndTime = currentTime + duration;
@@ -120,16 +122,32 @@ function checkExercisingConstraint(simulation, duration) {
   return null;
 }
 
+interface ActionResult {
+  simulationId: number;
+  currentActivity: string;
+  duration: number;
+  energy: number;
+  happiness: number;
+  timeElapsed: number;
+}
+
 // Apply a wellbeing or study action to a simulation and update state.
 // Errors returned in this order: INVALID_ACTION, INVALID_DURATION,
 // INVALID_STUDENT_ID, INVALID_SIMULATION, SIMULATION_ENDED, INVALID_EXAM
-function simulationApplyAction(studentId, simulationId, action, duration, examId) {
+function simulationApplyAction(
+  studentId: string,
+  simulationId: number,
+  action: string,
+  duration: number,
+  examId?: string
+): Result<ActionResult> {
   const data = getData();
 
   // Validate action type is one of the 5 valid actions
-  if (!VALID_ACTIONS.includes(action)) {
+  if (!VALID_ACTIONS.includes(action as ActionType)) {
     return { error: 'INVALID_ACTION', message: 'Action must be one of: DOOM_SCROLLING, STUDYING, SLEEPING, EATING, EXERCISING' };
   }
+  const validAction = action as ActionType;
 
   // Validate duration is a positive integer (at least 1 hour)
   if (!Number.isInteger(duration) || duration < 1) {
@@ -159,7 +177,7 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   }
 
   // STUDYING requires a valid examId to track which exam is being studied for
-  if (action === 'STUDYING') {
+  if (validAction === 'STUDYING') {
     if (!examId) {
       return { error: 'INVALID_EXAM', message: 'A STUDYING action requires an examId' };
     }
@@ -175,7 +193,7 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   }
 
   // EXERCISING has eating and cooldown constraints
-  if (action === 'EXERCISING') {
+  if (validAction === 'EXERCISING') {
     const exerciseErr = checkExercisingConstraint(simulation, duration);
     if (exerciseErr) {
       return { error: exerciseErr, message: 'Exercising constraint violated: must eat within 4 hours and 1-hour cooldown required' };
@@ -183,37 +201,29 @@ function simulationApplyAction(studentId, simulationId, action, duration, examId
   }
 
   // Apply stat changes using the effects table
-  const effects = ACTION_EFFECTS[action];
+  const effects = ACTION_EFFECTS[validAction];
   simulation.energy    = clampStat(simulation.energy    + effects.energyPerHour    * duration);
   simulation.happiness = clampStat(simulation.happiness + effects.happinessPerHour * duration);
 
-  ////////////////////////////////////////////////////////////////
-  // CRITERIA 2: Given a studying action, the interface allows
-  // the caller to identify which exam is being studied for.
-  ////////////////////////////////////////////////////////////////
   // Update study hours for the target exam if action is STUDYING
-  if (action === 'STUDYING') {
+  if (validAction === 'STUDYING' && examId) {
     const exam = simulation.universeData.exams.find(e => e.examId === examId);
-    exam.studyHoursCompleted += duration;
+    if (exam) {
+      exam.studyHoursCompleted += duration;
+    }
   }
 
   // Advance time and update current activity
   simulation.timeElapsed    += duration;
-  simulation.currentActivity = action;
+  simulation.currentActivity = validAction;
 
-  ////////////////////////////////////////////////////////////////
-  // CRITERIA 3: Given an action is applied, the interface makes it
-  // possible to determine which action was applied and how long the
-  // action lasted.
-  ////////////////////////////////////////////////////////////////
-  // Update study hours for the target exam if action is STUDYING
   // Record this action in history for future constraint checks
   simulation.actionHistory.push({
-    action,
+    action: validAction,
     duration,
     startTime: simulation.timeElapsed - duration,
     endTime:   simulation.timeElapsed,
-    examId:    action === 'STUDYING' ? examId : null,
+    examId:    validAction === 'STUDYING' && examId ? examId : null,
   });
 
   // Check win/lose conditions immediately after the action
