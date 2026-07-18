@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
+import { authRegister, authLogin } from './auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,29 @@ app.get('/echo', (req: Request, res: Response) => {
 
   return res.json(result);
 });
+
+// registers a new student and returns a session
+app.post('/auth/register', (req: Request, res: Response) => {
+  const { studentId, password, nameFirst, nameLast } = req.body;
+  const result = authRegister(studentId, password, nameFirst, nameLast);
+  if ('error' in result) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// logins a student
+app.post('/auth/login', (req: Request, res: Response) => {
+  const { studentId, password } = req.body;
+  const result = authLogin(studentId, password);
+  if ('error' in result) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
 
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
