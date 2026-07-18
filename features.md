@@ -47,3 +47,41 @@ Use the same table format as the prescribed interface table in the specification
 | `examAttemptRecord` <br><br> Given a valid exam attempt, record the attempt and determine the exam outcome. Applies a 30 energy cost. Does not advance timeElapsed. | Parameters: <br> `( examId, simulationId, studentId )` <br><br> Return object: <br/> `{` <br> `exam: [ {` <br> `examId: 'E1-COMP1531',` <br> `name: 'Quiz 1',` <br> `examStatus: 'ATTEMPTED',` <br> `examOutcome: 'PASS'` <br> `} ]` <br> `}` | `INVALID_STUDENT_ID`<br>Student ID does not refer to a valid registered student.<br><br>`INVALID_SIMULATION`<br>Simulation ID does not refer to a valid simulation.<br>Simulation does not belong to the given student ID.<br><br>`SIMULATION_ENDED`<br>The simulation has already ended and no further exam attempts can be made.<br><br>`INVALID_EXAM`<br>Exam ID does not refer to a valid exam within the given simulation.<br><br>`ALREADY_ATTEMPTED`<br>The specified exam has already been attempted and cannot be attempted again. |
 | `courseCompletion` <br><br> Determines the completion status of a specific course for a given student. | Parameters: <br> `( courseId, studentId, simulationId )` <br><br> Return object: <br/>  `{` <br> `course: [ {` <br> `courseId: 'COMP1531',` <br> `courseStatus: 'PASSED'` <br> `} ]` <br> `}` | `INVALID_STUDENT_ID`<br>Student ID does not refer to a valid registered student.<br><br>`INVALID_SIMULATION`<br>Simulation ID does not refer to a valid simulation.<br>Simulation does not belong to the given student ID.<br><br>`INVALID_COURSE`<br>Course ID does not refer to a valid course within the given simulation.|
 | `simulationStatus` <br><br> Get the current status and stats of a specific simulation | Parameters: <br> `( studentId, simulationId )` <br><br> Return object: <br/> `{` <br> `simulationStatus: 'ACTIVE',` <br> `currentActivity: 'DOOM_SCROLLING',` <br> `energy: 75,` <br> `happiness: 60,` <br> `timeElapsed: 1` <br> `}` | `INVALID_STUDENT_ID`<br>Student ID does not refer to a valid registered student. <br><br>`INVALID_SIMULATION`<br>Simulation ID does not refer to a valid simulation.<br>Simulation does not belong to the given student ID. |
+
+
+## Iteration 2 Route Design and Traceability
+
+Use this section to document the routes your group designed for the Student Wellbeing Advisor requirements. Your `swagger.yaml` file is still the source of truth for route names, request/response schemas, status codes, and error cases.
+
+### Designed Route Summary
+
+| Feature / story | Route(s) | Purpose | Request/response documented in `swagger.yaml`? |
+| --------------- | -------- | ------- | ---------------------------------------------- |
+| Story 1: View personalised recommendations |  |  |  |
+| Story 2: Understand social connection state |  |  |  |
+| Story 3: Choose between wellbeing activities |  |  |  |
+| Story 4: Discover social opportunities |  |  |  |
+| Story 5: Inspect exam readiness |  |  |  |
+| Story 6: Prioritise the next best action |  |  |  |
+
+### Traceability Table
+
+Your Week 8 design check-in and Week 10 final demo must include a traceability table that maps requirements to implementation evidence.
+
+| Requirement / story | Designed route(s) | Acceptance criteria | HTTP tests | Demo evidence |
+| ------------------- | ----------------- | ------------------- | ---------- | ------------- |
+| Story 1: View personalised recommendations |  |  |  |  |
+| Story 2: Understand social connection state |  |  |  |  |
+| Story 3: Choose between wellbeing activities |  |  |  |  |
+| Story 4: Discover social opportunities |  |  |  |  |
+| Story 5: Inspect exam readiness |  |  |  |  |
+| Story 6: Prioritise the next best action |  |  |  |  |
+
+### Design Notes
+
+Use this section for design decisions that do not fit neatly into `swagger.yaml`, such as:
+- how recommendation scores are calculated;
+- how social connections are represented;
+- how opportunities are loaded or generated;
+- how exam readiness is calculated;
+- assumptions, limitations, or known trade-offs.
