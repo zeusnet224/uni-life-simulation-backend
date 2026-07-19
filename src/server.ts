@@ -6,6 +6,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
+import { authRegister, authLogin } from './auth.js';
+import { clearData } from './dataStore.js';
+import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
+import { getStudentIdFromSession } from './auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +45,92 @@ app.get('/echo', (req: Request, res: Response) => {
   return res.json(result);
 });
 
+// registers a new student and returns a session
+app.post('/auth/register', (req: Request, res: Response) => {
+  const { studentId, password, nameFirst, nameLast } = req.body;
+  const result = authRegister(studentId, password, nameFirst, nameLast);
+  if ('error' in result) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// logins a student
+app.post('/auth/login', (req: Request, res: Response) => {
+  const { studentId, password } = req.body;
+  const result = authLogin(studentId, password);
+  if ('error' in result) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// clears the data
+app.delete('/clear', (req: Request, res: Response) => {
+  clearData();
+  res.json({});
+});
+
+// creates a social connection for a simulation
+app.post('/simulations/:simulationId/connections', (req: Request, res: Response) => {
+  const session = req.header('session');
+  if (!session) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'No session provided' });
+  }
+  const studentId = getStudentIdFromSession(session);
+  if (!studentId) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'Invalid session' });
+  }
+
+  const simulationId = parseInt(req.params.simulationId as string);
+  const { name, closeness } = req.body;
+  const result = socialConnectionCreate(studentId, simulationId, name, closeness);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
+
+// lists all social connections for a simulation
+app.get('/simulations/:simulationId/connections', (req: Request, res: Response) => {
+  const session = req.header('session');
+  if (!session) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'No session provided' });
+  }
+  const studentId = getStudentIdFromSession(session);
+  if (!studentId) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'Invalid session' });
+  }
+
+  const simulationId = parseInt(req.params.simulationId as string);
+  const result = socialConnectionsList(studentId, simulationId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
+
+// removes a social connection from a simulation
+app.delete('/simulations/:simulationId/connections/:connectionId', (req: Request, res: Response) => {
+  const session = req.header('session');
+  if (!session) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'No session provided' });
+  }
+  const studentId = getStudentIdFromSession(session);
+  if (!studentId) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: 'Invalid session' });
+  }
+
+  const simulationId = parseInt(req.params.simulationId as string);
+  const connectionId = req.params.connectionId as string;
+  const result = socialConnectionRemove(studentId, simulationId, connectionId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
