@@ -6,10 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
-import { authRegister, authLogin } from './auth.js';
+import { authRegister, authLogin, getStudentIdFromSession } from './auth.js';
 import { clear } from './other.js';
 import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
-import { getStudentIdFromSession } from './auth.js';
 import { societyList, societyJoin, societyAttend } from './society.js';
 import {
   simulationCreate,
@@ -25,7 +24,7 @@ import {
   courseRetrieveCourseDetails,
   courseRetrieveExamDetails,
   courseCompletion,
-} from './course.js'
+} from './course.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -256,8 +255,6 @@ app.get(
   }
 );
 
-
-
 // creates a social connection for a simulation
 app.post('/simulations/:simulationId/connections', (req: Request, res: Response) => {
   const session = req.header('session');
@@ -340,7 +337,7 @@ app.post('/simulations/:simulationId/societies/:societyId/join', (req: Request, 
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const result = societyJoin(studentId, simulationId, societyId);
 
   if ('error' in result) {
@@ -358,7 +355,7 @@ app.post('/simulations/:simulationId/societies/:societyId/attend', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const { duration } = req.body;
   const result = societyAttend(studentId, simulationId, societyId, duration);
 
@@ -411,7 +408,7 @@ app.get('/simulations/:simulationId/courses/:courseId', (req: Request, res: Resp
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseRetrieveCourseDetails(courseId, simulationId);
 
   if ('error' in result) {
@@ -429,7 +426,7 @@ app.get('/simulations/:simulationId/exams/:examId', (req: Request, res: Response
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const examId = req.params.examId;
+  const examId = req.params.examId as string;
   const result = courseRetrieveExamDetails(simulationId, examId);
 
   if ('error' in result) {
@@ -447,7 +444,7 @@ app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseCompletion(courseId, studentId, simulationId);
 
   if ('error' in result) {

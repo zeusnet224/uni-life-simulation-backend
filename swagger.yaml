@@ -237,6 +237,50 @@ x-components:
         isJoined:
           type: boolean
           example: false
+    PlanOption:
+      type: object
+      properties:
+        action:
+          $ref: '#/x-components/prim/Activity'
+        allowed:
+          type: boolean
+          example: true
+          description: Whether this action could currently be performed without violating a constraint (e.g. studying limits, exercise cooldown, ended simulation)
+        impact:
+          type: string
+          example: "Increases energy by 15, delays exam study progress"
+          description: A short human-readable summary of at least one expected benefit, cost, or risk of choosing this action now
+        reason:
+          type: string
+          example: "Energy is low (20/100); resting now reduces dropout risk before your next exam"
+          description: Short explanation of why this option is being surfaced given current simulation state
+
+    PlanBlocker:
+      type: object
+      properties:
+        type:
+          type: string
+          example: LOW_ENERGY
+          description: Machine-readable category of the current risk or blocker (e.g. LOW_ENERGY, LOW_HAPPINESS, UPCOMING_EXAM, NO_SOCIAL_SUPPORT, NO_OPPORTUNITIES, LOW_READINESS)
+        description:
+          type: string
+          example: "Energy is critically low (10/100) — dropout risk if it reaches 0"
+
+    AdvisorPlan:
+      type: object
+      properties:
+        options:
+          type: array
+          minItems: 3
+          items:
+            $ref: '#/x-components/group/PlanOption'
+          description: At least 3 comparable next actions the student could take, derived from current simulation state
+        blockers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/x-components/group/PlanBlocker'
+          description: At least one current risk or blocker (e.g. low energy, low happiness, insufficient sleep, upcoming exams, no social support, no joined opportunities, low exam readiness)
 
     Society:
           type: object
@@ -1748,3 +1792,45 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
+
+  # ==================== STORY 1: PLAN A BALANCED WEEK ====================
+  # Compares at least 3 possible next actions for the student's current simulation
+  # state, and surfaces at least one current risk or blocker. All values are derived
+  # live from the simulation (energy, happiness, timeElapsed, action history, joined
+  # societies/opportunities, exam readiness) — never hardcoded.
+
+  /simulations/{simulationId}/advisor/plan:
+    get:
+      operationId: advisorPlan
+      summary: Inspect a short-term plan comparing upcoming actions
+      description: |
+        Returns a comparison of at least 3 possible next actions for this
+        simulation (e.g. STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING,
+        or designed activities/opportunities), each annotated with whether it is
+        currently allowed, an expected benefit/cost/risk, and a short reason.
+        Also identifies at least one current risk or blocker based on live
+        simulation state (e.g. low energy, low happiness, insufficient recent
+        sleep, upcoming exam pressure, no social support, no joined
+        opportunities, or low exam readiness).
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/AdvisorPlan'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to a valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Valid session is provided, but simulation does not belong to the authenticated student, or simulation doesn't exist
+          schema:
+            $ref: '#/x-components/return/Error'
