@@ -58,7 +58,7 @@ describe('clear', () => {
   test('removes old students and simulations from the application state', () => {
     registerStudent();
     simulationCreate(STUDENT_ID, makeUniverse());
-    const oldSecondSimulation = simulationCreate(STUDENT_ID, makeUniverse());
+    const oldSecondSimulation = simulationCreate(STUDENT_ID, makeUniverse()) as { simulationId: number };
 
     clear();
 

@@ -1,12 +1,16 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions } from './action.js';
 import { getData } from './dataStore.js';
+import { Simulation, Exam, UniverseData, Result, ErrorResponse } from './types.js';
 
-// Creates a new simulation instance for a registered student with the given universe data.
-// Sets initial stats: energy=100, happiness=50, timeElapsed=0, currentActivity=DOOM_SCROLLING.
-// Returns { simulationId } on success.
-// Errors: INVALID_STUDENT_ID, INVALID_UNIVERSE
-function simulationCreate(studentId, universeData) {
+function isRawErrorObject(value: unknown): value is ErrorResponse {
+  return value !== null && typeof value === 'object' && 'error' in value;
+}
+
+export function simulationCreate(
+  studentId: string,
+  universeData: unknown
+): Result<Pick<Simulation, 'simulationId'>> {
   const data = getData();
 
   const student = findStudentOrError(studentId);
@@ -16,21 +20,24 @@ function simulationCreate(studentId, universeData) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must be an object' };
   }
 
-  if (universeData.error) {
+  if (isRawErrorObject(universeData)) {
     return { error: 'INVALID_UNIVERSE', message: universeData.message || 'Universe data is invalid' };
   }
 
-  if (!Array.isArray(universeData.courses)) {
+  const rawUniverse = universeData as Partial<UniverseData>;
+
+  if (!Array.isArray(rawUniverse.courses)) {
     return { error: 'INVALID_UNIVERSE', message: 'Universe data must contain a courses array' };
   }
 
-  const exams = Array.isArray(universeData.exams) ? universeData.exams : [];
+  const exams = Array.isArray(rawUniverse.exams) ? rawUniverse.exams : [];
+  const societies = Array.isArray(rawUniverse.societies) ? rawUniverse.societies : [];
 
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
   }, 0) + 1;
 
-  data.simulations.push({
+  const newSimulation: Simulation = {
     simulationId,
     studentId,
     simulationStatus: 'ACTIVE',
@@ -41,8 +48,7 @@ function simulationCreate(studentId, universeData) {
     actionHistory: [],
     joinedSocieties: [],
     universeData: {
-      ...universeData,
-      courses: universeData.courses.map(course => ({
+      courses: rawUniverse.courses.map(course => ({
         ...course,
         courseStatus: course.courseStatus || 'ACTIVE',
       })),
@@ -54,24 +60,25 @@ function simulationCreate(studentId, universeData) {
         examScore: exam.examScore || 0,
         examOutcome: exam.examOutcome || 'NIL',
       })),
+      societies,
     },
-  });
+  };
+
+  data.simulations.push(newSimulation);
 
   return { simulationId };
 }
 
-// Returns the current status and stats of a specific simulation.
-// Also checks win/lose conditions and updates simulationStatus if needed.
-// Returns { simulationStatus, currentActivity, energy, happiness, timeElapsed }
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
-function simulationStatus(studentId, simulationId) {
+export function simulationStatus(
+  studentId: string,
+  simulationId: number
+): Result<Pick<Simulation, 'simulationStatus' | 'currentActivity' | 'energy' | 'happiness' | 'timeElapsed'>> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
   const simulation = findOwnedSimulationOrError(studentId, simulationId);
   if (isError(simulation)) return simulation;
 
-  // Reuse the shared win/lose check instead of duplicating the logic here
   checkWinLoseConditions(simulation);
 
   return {
@@ -83,11 +90,9 @@ function simulationStatus(studentId, simulationId) {
   };
 }
 
-// Returns a summary list of all simulation instances belonging to a given student.
-// Each simulation includes simulationId, simulationStatus, currentActivity, timeElapsed.
-// Returns { simulations: [{ simulationId, simulationStatus, currentActivity, timeElapsed }] }
-// Errors: INVALID_STUDENT_ID
-function simulationsList(studentId) {
+export function simulationsList(
+  studentId: string
+): Result<{ simulations: Pick<Simulation, 'simulationId' | 'simulationStatus' | 'currentActivity' | 'timeElapsed'>[] }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -104,10 +109,10 @@ function simulationsList(studentId) {
   return { simulations: studentSimulations };
 }
 
-// Identifies which exam was being studied for in the most recent action, if any.
-// Returns { examId, name, duration } if the last action was STUDYING.
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, NO_STUDY_ACTION
-function examGetStudyAction(studentId, simulationId) {
+export function examGetStudyAction(
+  studentId: string,
+  simulationId: number
+): Result<Pick<Exam, 'examId' | 'name'> & { duration: number }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -120,6 +125,9 @@ function examGetStudyAction(studentId, simulationId) {
   }
 
   const exam = simulation.universeData.exams.find(e => e.examId === lastAction.examId);
+  if (!exam) {
+    return { error: 'NO_STUDY_ACTION', message: 'The studied exam could not be found' };
+  }
 
   return {
     examId: exam.examId,
@@ -128,10 +136,10 @@ function examGetStudyAction(studentId, simulationId) {
   };
 }
 
-// Determines which action was most recently applied and how long it lasted.
-// Returns { currentActivity, duration, timeElapsed }.
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, NO_ACTION_PERFORMED
-function simulationGetLastAction(studentId, simulationId) {
+export function simulationGetLastAction(
+  studentId: string,
+  simulationId: number
+): Result<Pick<Simulation, 'currentActivity' | 'timeElapsed'> & { duration: number }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -150,10 +158,10 @@ function simulationGetLastAction(studentId, simulationId) {
   };
 }
 
-// Signals whether a simulation has ended and no further actions should be applied.
-// Returns { simulationStatus, notification } once GRADUATED or DROPPED_OUT.
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, SIMULATION_NOT_ENDED
-function simulationGetConcludingNotification(studentId, simulationId) {
+export function simulationGetConcludingNotification(
+  studentId: string,
+  simulationId: number
+): Result<Pick<Simulation, 'simulationStatus'> & { notification: string }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -175,12 +183,3 @@ function simulationGetConcludingNotification(studentId, simulationId) {
     notification,
   };
 }
-
-export {
-  simulationCreate,
-  simulationStatus,
-  simulationsList,
-  examGetStudyAction,
-  simulationGetLastAction,
-  simulationGetConcludingNotification,
-};

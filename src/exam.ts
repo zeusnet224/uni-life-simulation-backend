@@ -1,33 +1,17 @@
 import { checkWinLoseConditions } from './action.js';
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
-import { Result } from './types.js';
-
-interface ExamStudyProgressResult {
-  examId: string;
-  studyHoursCompleted: number;
-  requiredStudyHours: number;
-  ready: boolean;
-}
-
-interface ExamAttemptResult {
-  exam: {
-    examId: string;
-    name: string;
-    examStatus: string;
-    examOutcome: string;
-  }[];
-}
+import { Exam, Result } from './types.js';
 
 // Returns the study progress for a specific exam in a simulation.
 // This is a read-only function — it does not change timeElapsed or currentActivity.
 // Parameters: simulationId, studentId, examId
 // Returns: { examId, studyHoursCompleted, requiredStudyHours, ready }
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_EXAM
-function examStudyProgress(
+export function examStudyProgress(
   simulationId: number,
   studentId: string,
   examId: string
-): Result<ExamStudyProgressResult> {
+): Result<Pick<Exam, 'examId' | 'studyHoursCompleted' | 'requiredStudyHours'> & { ready: boolean }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -40,9 +24,9 @@ function examStudyProgress(
   }
 
   return {
-    examId:              exam.examId,
+    examId: exam.examId,
     studyHoursCompleted: exam.studyHoursCompleted,
-    requiredStudyHours:  exam.requiredStudyHours,
+    requiredStudyHours: exam.requiredStudyHours,
     ready: exam.studyHoursCompleted >= exam.requiredStudyHours,
   };
 }
@@ -54,11 +38,11 @@ function examStudyProgress(
 // Parameters: examId, simulationId, studentId
 // Returns: { exam: [{ examId, name, examStatus, examOutcome }] }
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, SIMULATION_ENDED, INVALID_EXAM, ALREADY_ATTEMPTED
-function examAttemptRecord(
+export function examAttemptRecord(
   examId: string,
   simulationId: number,
   studentId: string
-): Result<ExamAttemptResult> {
+): Result<{ exam: Pick<Exam, 'examId' | 'name' | 'examStatus' | 'examOutcome'>[] }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -124,13 +108,11 @@ function examAttemptRecord(
   return {
     exam: [
       {
-        examId:      exam.examId,
-        name:        exam.name,
-        examStatus:  exam.examStatus,
+        examId: exam.examId,
+        name: exam.name,
+        examStatus: exam.examStatus,
         examOutcome: exam.examOutcome,
       }
     ]
   };
 }
-
-export { examStudyProgress, examAttemptRecord };

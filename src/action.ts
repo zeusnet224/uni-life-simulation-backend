@@ -4,11 +4,11 @@ import { Simulation, ActionType, Result } from './types.js';
 // Stat effects per hour for each action (from spec section 2.1.4)
 // Each action changes energy and happiness by these amounts per hour of duration
 const ACTION_EFFECTS: Record<ActionType, { energyPerHour: number; happinessPerHour: number }> = {
-  DOOM_SCROLLING: { energyPerHour: 3,   happinessPerHour: 2  },
-  STUDYING:       { energyPerHour: -15,  happinessPerHour: -5 },
-  SLEEPING:       { energyPerHour: 15,   happinessPerHour: 2  },
-  EATING:         { energyPerHour: 10,   happinessPerHour: 3  },
-  EXERCISING:     { energyPerHour: -10,  happinessPerHour: 6  },
+  DOOM_SCROLLING: { energyPerHour: 3, happinessPerHour: 2 },
+  STUDYING: { energyPerHour: -15, happinessPerHour: -5 },
+  SLEEPING: { energyPerHour: 15, happinessPerHour: 2 },
+  EATING: { energyPerHour: 10, happinessPerHour: 3 },
+  EXERCISING: { energyPerHour: -10, happinessPerHour: 6 },
 };
 
 // The 5 valid action types a student can perform in a simulation
@@ -42,8 +42,8 @@ function checkWinLoseConditions(simulation: Simulation): void {
   }
 
   // Dropout conditions — any one triggers dropout immediately
-  if (simulation.energy <= 0 || simulation.happiness <= 0 || anyCourseFailed ||
-      totalExamFailures >= 5) {
+  if (simulation.energy <= 0 || simulation.happiness <= 0 || anyCourseFailed
+    || totalExamFailures >= 5) {
     simulation.simulationStatus = 'DROPPED_OUT';
     return;
   }
@@ -122,7 +122,7 @@ function checkExercisingConstraint(simulation: Simulation, duration: number): st
   return null;
 }
 
-interface ActionResult {
+export interface ActionResult {
   simulationId: number;
   currentActivity: string;
   duration: number;
@@ -202,7 +202,7 @@ function simulationApplyAction(
 
   // Apply stat changes using the effects table
   const effects = ACTION_EFFECTS[validAction];
-  simulation.energy    = clampStat(simulation.energy    + effects.energyPerHour    * duration);
+  simulation.energy = clampStat(simulation.energy + effects.energyPerHour * duration);
   simulation.happiness = clampStat(simulation.happiness + effects.happinessPerHour * duration);
 
   // Update study hours for the target exam if action is STUDYING
@@ -214,7 +214,7 @@ function simulationApplyAction(
   }
 
   // Advance time and update current activity
-  simulation.timeElapsed    += duration;
+  simulation.timeElapsed += duration;
   simulation.currentActivity = validAction;
 
   // Record this action in history for future constraint checks
@@ -222,20 +222,20 @@ function simulationApplyAction(
     action: validAction,
     duration,
     startTime: simulation.timeElapsed - duration,
-    endTime:   simulation.timeElapsed,
-    examId:    validAction === 'STUDYING' && examId ? examId : null,
+    endTime: simulation.timeElapsed,
+    examId: validAction === 'STUDYING' && examId ? examId : null,
   });
 
   // Check win/lose conditions immediately after the action
   checkWinLoseConditions(simulation);
 
   return {
-    simulationId:    simulation.simulationId,
+    simulationId: simulation.simulationId,
     currentActivity: simulation.currentActivity,
     duration,
-    energy:          simulation.energy,
-    happiness:       simulation.happiness,
-    timeElapsed:     simulation.timeElapsed,
+    energy: simulation.energy,
+    happiness: simulation.happiness,
+    timeElapsed: simulation.timeElapsed,
   };
 }
 

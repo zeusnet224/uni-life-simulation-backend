@@ -1,15 +1,12 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions, clampStat } from './action.js';
+import { Simulation, Society, Result } from './types.js';
 
-// Stat effects per hour for attending a society event
-// Attending increases happiness but costs energy
 const societyAction = {
   ATTENDING: { happinessPerHour: 10, energyPerHour: -5 }
 };
 
-// Finds a society by societyId within a simulation's universe data.
-// Returns the society object if found, or an INVALID_SOCIETY error object if not.
-function findSocietyOrError(simulation, societyId) {
+function findSocietyOrError(simulation: Simulation, societyId: string): Result<Society> {
   const society = simulation.universeData.societies.find(soc => soc.societyId === societyId);
   if (!society) {
     return { error: 'INVALID_SOCIETY', message: 'Society ID does not exist' };
@@ -17,16 +14,14 @@ function findSocietyOrError(simulation, societyId) {
   return society;
 }
 
-// Returns true if the student has already joined the given society in this simulation.
-function hasJoinedSociety(simulation, societyId) {
+function hasJoinedSociety(simulation: Simulation, societyId: string): boolean {
   return simulation.joinedSocieties.includes(societyId);
 }
 
-// Returns a list of all societies available to join in this simulation.
-// Only shows societies the student has NOT already joined.
-// Returns { societies: [{ societyId, name, description }] }
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
-function societyList(studentId, simulationId) {
+export function societyList(
+  studentId: string,
+  simulationId: number
+): Result<{ societies: Society[] }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -44,10 +39,11 @@ function societyList(studentId, simulationId) {
   return { societies: availableSocieties };
 }
 
-// Joins a society in the simulation — student can only join each society once.
-// Returns { societyId, name } on success.
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY
-function societyJoin(studentId, simulationId, societyId) {
+export function societyJoin(
+  studentId: string,
+  simulationId: number,
+  societyId: string
+): Result<Pick<Society, 'societyId' | 'name'>> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -69,13 +65,12 @@ function societyJoin(studentId, simulationId, societyId) {
   };
 }
 
-// Attends a society event for a given duration (1-4 hours).
-// Attending costs energy (-5/hr) and increases happiness (+10/hr).
-// Advances timeElapsed and sets currentActivity to ATTENDING_SOCIETY.
-// Checks win/lose conditions immediately after attending.
-// Returns { happiness, energy } on success.
-// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_SOCIETY, INVALID_DURATION
-function societyAttend(studentId, simulationId, societyId, duration) {
+export function societyAttend(
+  studentId: string,
+  simulationId: number,
+  societyId: string,
+  duration: number
+): Result<Pick<Simulation, 'happiness' | 'energy'>> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -106,5 +101,3 @@ function societyAttend(studentId, simulationId, societyId, duration) {
     energy: simulation.energy,
   };
 }
-
-export { societyList, societyJoin, societyAttend };
