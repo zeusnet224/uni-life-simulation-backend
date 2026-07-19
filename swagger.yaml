@@ -141,6 +141,13 @@ x-components:
       type: string
       example: peer-mentoring
       description: Unique identifier for an extracurricular opportunity within a universe
+    WellbeingActivity:
+      type: string
+      enum: [HANG_OUT, ATTEND_CLUB_EVENT]
+      description: |
+        Group-designed wellbeing activities:
+        - HANG_OUT: spend time with an existing social connection. Happiness gain scales with the connection's closeness. Costs energy and time.
+        - ATTEND_CLUB_EVENT: attend an event for a club the simulation has joined. Restores happiness based on the club's happinessBonus and a small amount of energy. Costs time.
 
   group:
     User:
@@ -354,6 +361,38 @@ x-components:
           type: boolean
           example: false
           description: Whether the authenticated student has joined this opportunity in the simulation
+    RecommendedAction:
+          type: object
+          properties:
+            action:
+              type: string
+              example: SLEEPING
+              description: A prescribed Activity or group-designed WellbeingActivity value. Never an action that is currently invalid for the simulation state.
+            reason:
+              type: string
+              example: Energy is below 20, so sleeping is required before other actions are possible.
+              description: Human-readable reason for the recommendation
+            targetId:
+              type: string
+              example: E1-COMP1531
+              description: Optional target for the action (e.g. exam to study for, connectionId to hang out with, clubId for an event)
+
+    AlternativeAction:
+      type: object
+      properties:
+        action:
+          type: string
+          example: HANG_OUT
+        reason:
+          type: string
+          example: Would restore happiness using a HIGH closeness connection.
+        isAvailable:
+          type: boolean
+          example: false
+          description: Whether the action is currently valid. If false, reason must explain why it is unavailable.
+        targetId:
+          type: string
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 
   path:
     StudentIdPath:
@@ -547,6 +586,24 @@ x-components:
             properties:
               duration:
                 $ref: '#/x-components/prim/Duration'
+
+    WellbeingAction:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - activity
+          - duration
+        properties:
+          activity:
+            $ref: '#/x-components/prim/WellbeingActivity'
+          duration:
+            $ref: '#/x-components/prim/Duration'
+          targetId:
+            type: string
+            description: Required. For HANG_OUT, the connectionId of the social connection. For ATTEND_CLUB_EVENT, the clubId of a joined club.
     UniverseCreate:
       in: body
       name: body
@@ -812,6 +869,31 @@ x-components:
                 type: string
                 enum: [IN_PROGRESS, PASSED, FAILED]
                 example: PASSED
+    WellbeingResult:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        currentActivity:
+          type: string
+          example: HANG_OUT
+          description: The wellbeing activity now being performed
+        energy:
+          $ref: '#/x-components/prim/Energy'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+    Recommendation:
+      type: object
+      properties:
+        recommendation:
+          $ref: '#/x-components/group/RecommendedAction'
+        alternatives:
+          type: array
+          items:
+            $ref: '#/x-components/group/AlternativeAction'
+          description: At least one alternative action is always included
     UniverseList:
       type: object
       properties:
@@ -1451,10 +1533,6 @@ paths:
             schema:
               $ref: '#/x-components/return/Error'
 
-              - Simulation does not exist or does not belong to the authenticated student
-          schema:
-            $ref: '#/x-components/return/Error'
-
   /simulations/{simulationId}/opportunities/{opportunityId}/join:
     post:
       operationId: opportunityJoin
@@ -1542,3 +1620,76 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
+  /simulations/{simulationId}/wellbeing:
+      post:
+        operationId: wellbeingActivityPerform
+        summary: Perform a wellbeing activity
+        description: |
+          Performs a group-designed wellbeing activity for the given simulation.
+          - HANG_OUT: requires targetId to be a valid connectionId and at least 10 energy. Gains (closeness x 2) happiness per hour, costs 5 energy per hour.
+          - ATTEND_CLUB_EVENT: requires targetId to be the clubId of a club the simulation has joined. Gains the club's happinessBonus happiness per hour and restores 2 energy per hour.
+          Both activities advance timeElapsed by the duration and set currentActivity while performed. The updated simulation state is returned so the effect can be verified.
+        tags:
+          - "Iteration 2 (Designed)"
+        parameters:
+          - $ref: '#/x-components/path/SimulationId'
+          - $ref: '#/x-components/header/Session'
+          - $ref: '#/x-components/body/WellbeingAction'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/x-components/return/WellbeingResult'
+          401:
+            description: |
+              - **UNAUTHORISED**
+                - Session is empty or invalid
+            schema:
+              $ref: '#/x-components/return/Error'
+          400:
+            description: |
+              If any of the following are true:
+              - **INVALID_SIMULATION**
+                - Simulation does not exist, does not belong to the student, or has already ended
+              - **INVALID_ACTIVITY**
+                - Activity is not HANG_OUT or ATTEND_CLUB_EVENT
+              - **INVALID_DURATION**
+                - Duration is not an integer of at least 1 hour
+              - **INVALID_TARGET**
+                - For HANG_OUT, targetId is missing or does not refer to a social connection in this simulation
+                - For ATTEND_CLUB_EVENT, targetId is missing, does not refer to an existing club, or the club has not been joined
+              - **INSUFFICIENT_ENERGY**
+                - For HANG_OUT, simulation has less than 10 energy
+            schema:
+              $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/recommendation:
+    get:
+      operationId: recommendationGet
+      summary: Recommend the next action
+      description: |
+        Returns a recommended next action for the simulation based on current energy, current happiness, recent sleep, exam readiness, available social connections, and joined opportunities.
+        The primary recommendation is always an action that is currently valid for the simulation state. At least one alternative action is included; alternatives may be invalid only if isAvailable is false and a reason explains why.
+        Meaningfully different simulation states produce different recommendations.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Recommendation'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+          schema:
+            $ref: '#/x-components/return/Error'
