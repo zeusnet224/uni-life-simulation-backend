@@ -161,8 +161,10 @@ x-components:
           $ref: '#/x-components/prim/SimulationId'
         simulationStatus:
           $ref: '#/x-components/prim/SimulationStatus'
-        createdAt:
-          $ref: '#/x-components/prim/Timestamp'
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
 
     SimulationFull:
       type: object
@@ -494,6 +496,33 @@ x-components:
             $ref: '#/x-components/group/SimulationSummary'
     SimulationStatus:
       $ref: '#/x-components/group/SimulationFull'
+    LastAction:
+      type: object
+      properties:
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        duration:
+          $ref: '#/x-components/prim/Duration'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+    LastStudyAction:
+      type: object
+      properties:
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        name:
+          type: string
+          example: COMP1531 Final Exam
+        duration:
+          $ref: '#/x-components/prim/Duration'
+    ConcludingNotification:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        notification:
+          type: string
+          example: Congratulations, this simulation has GRADUATED. No further actions can be applied.
     FriendList:
       type: object
       properties:
@@ -634,6 +663,23 @@ paths:
   # ==================== SIMULATION ROUTES ====================
 
   /simulations:
+    get:
+      operationId: simulationsList
+      summary: List the authenticated student's simulations
+      description: Returns summary information for every simulation owned by the authenticated student.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationList'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
     post:
       operationId: simulationCreate
       summary: Create a new simulation
@@ -816,5 +862,88 @@ paths:
               - Simulation does not exist, does not belong to the student, or has already ended
             - **INVALID_CONNECTION**
               - Connection ID does not exist for this simulation
+          schema:
+            $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/last-action:
+    get:
+      operationId: simulationGetLastAction
+      summary: Get the most recent simulation action
+      description: Returns the most recent action performed in the simulation.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/LastAction'
+        400:
+          description: No action has been performed
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/last-study-action:
+    get:
+      operationId: examGetStudyAction
+      summary: Get the most recent study action
+      description: Returns the exam and duration from the simulation's most recent study action.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/LastStudyAction'
+        400:
+          description: The most recent action was not a study action
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/conclusion:
+    get:
+      operationId: simulationGetConcludingNotification
+      summary: Get the simulation conclusion
+      description: Returns the concluding notification for a graduated or dropped-out simulation.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConcludingNotification'
+        400:
+          description: Simulation is still active
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
           schema:
             $ref: '#/x-components/return/Error'
