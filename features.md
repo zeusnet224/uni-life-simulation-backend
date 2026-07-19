@@ -60,7 +60,7 @@ Use this section to document the routes your group designed for the Student Well
 | Story 1: View personalised recommendations |  |  |  |
 | Story 2: Understand social connection state | `POST /simulations/{simulationId}/connections`<br>`GET /simulations/{simulationId}/connections`<br>`DELETE /simulations/{simulationId}/connections/{connectionId}` | Create, inspect, and remove social connections (friends, mentors, study buddies, family) for a simulation. Each connection has a unique id, display name, closeness value (1-5), and creation timestamp. Prevents duplicate connection names within the same simulation. | Yes |
 | Story 3: Choose between wellbeing activities |  |  |  |
-| Story 4: Discover social opportunities |  |  |  |
+| Story 4: Join opportunities with trade-offs | `GET /simulations/{simulationId}/opportunities`<br>`POST /simulations/{simulationId}/opportunities/{opportunityId}/join`<br>`DELETE /simulations/{simulationId}/opportunities/{opportunityId}/leave` | Inspect universe-defined extracurricular opportunities and their wellbeing, academic, and time trade-offs. Students may join and leave opportunities, with a maximum of 3 joined opportunities at one time. | Yes |
 | Story 5: Inspect exam readiness |  |  |  |
 | Story 6: Prioritise the next best action |  |  |  |
 
@@ -73,7 +73,7 @@ Your Week 8 design check-in and Week 10 final demo must include a traceability t
 | Story 1: View personalised recommendations |  |  |  |  |
 | Story 2: Understand social connection state | `POST /simulations/{simulationId}/connections`<br>`GET /simulations/{simulationId}/connections`<br>`DELETE /simulations/{simulationId}/connections/{connectionId}` | Create/inspect/remove connections; unique id, name, closeness, timestamp per connection; duplicate names rejected; mutating routes reject ended simulations | Pending — blocked on `POST /simulations` HTTP route not yet implemented | TBD |
 | Story 3: Choose between wellbeing activities |  |  |  |  |
-| Story 4: Discover social opportunities |  |  |  |  |
+| Story 4: Join opportunities with trade-offs | `GET /simulations/{simulationId}/opportunities`<br>`POST /simulations/{simulationId}/opportunities/{opportunityId}/join`<br>`DELETE /simulations/{simulationId}/opportunities/{opportunityId}/leave` | Opportunities contain a unique ID, name, happiness effect, academic effect, and weekly time cost; available opportunities can be inspected; opportunities can be joined and left; duplicate joins and invalid IDs are rejected; a maximum of 3 opportunities may be joined; joining does not immediately apply benefits | Pending — Swagger design completed; Story 4 backend routes and black-box HTTP tests are not yet implemented | Week 8: demonstrate the Swagger schemas and route contracts. Final demo: list opportunities, join 3, reject a duplicate and a fourth join, leave one, and successfully join another. |
 | Story 5: Inspect exam readiness |  |  |  |  |
 | Story 6: Prioritise the next best action |  |  |  |  |
 
@@ -85,5 +85,6 @@ Use this section for design decisions that do not fit neatly into `swagger.yaml`
 - how opportunities are loaded or generated;
 - how exam readiness is calculated;
 - assumptions, limitations, or known trade-offs.
+- **Extracurricular opportunities**: opportunities are designed to be loaded from the simulation's `universeData.opportunities` array. Each opportunity contains an `opportunityId`, name, description, `happinessBonus`, `academicBonus`, and `weeklyHours` cost. Joined opportunity IDs will be stored against the simulation. All currently joined opportunities count toward the maximum of 3. Joining an opportunity records membership only and does not immediately change happiness, energy, study progress, or exam outcomes. These effects will instead be considered by later wellbeing activities, academic readiness calculations, or recommendation logic. The opportunity-list route is read-only, while joining and leaving will be rejected after a simulation has ended.
 
 - **Social connections**: represented as a flat list on `AppData.socialConnections`, each entry storing `connectionId` (randomly generated UUID), `simulationId`, `name`, `closeness` (integer 1-5), and `createdAt` (the simulation's `timeElapsed` value at creation time). Closeness is intended to later influence wellbeing activities and recommendations that depend on social support, though that integration is not yet wired up pending the relevant activity/recommendation routes.
