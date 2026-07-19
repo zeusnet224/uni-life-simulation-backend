@@ -1,91 +1,115 @@
 import { getData } from './dataStore.js';
 import { Student, Result } from './types.js';
+import crypto from 'crypto';
 
-// A name is valid if it is 2-20 characters long and contains only
-// letters, spaces, hyphens, or apostrophes.
-function isValidName(name: string): boolean {
-  const validCharacters = /^[a-zA-Z \-']+$/.test(name);
-  return name.length >= 2 && name.length <= 20 && validCharacters;
+
+interface AuthResult {
+  session: string;
 }
 
-// A password is valid if it is at least 8 characters long and contains
-// at least one letter and at least one digit.
-function isValidPassword(password: string): boolean {
-  const hasLetter = /[a-zA-Z]/.test(password);
-  const hasDigit = /[0-9]/.test(password);
-  return password.length >= 8 && hasLetter && hasDigit;
+/** Regex to validate a first or last name */
+const NAME_REGEX = /^[a-zA-Z \-']+$/;
+
+/** Regex to valid UNSW ZID */
+const ZID_REGEX = /^z\d{7}$/;
+
+function validatePassword(password: string): boolean {
+  const passAlpha = /[a-zA-Z]/.test(password);
+  const passDigit = /[0-9]/.test(password);
+  if (password.length < 8 || !passAlpha || !passDigit) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
-// A studentId is valid in format if it is a lowercase 'z' followed by
-// exactly 7 digits (e.g. z5555555).
-function isValidStudentIdFormat(studentId: string): boolean {
-  return /^z\d{7}$/.test(studentId);
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// True if a student with this studentId is already registered.
-function isStudentIdTaken(studentId: string): boolean {
+function createSession(studentId: string): string {
   const data = getData();
-  return data.users.some(user => user.studentId === studentId);
+  const session = crypto.randomUUID();
+  data.sessions.push({ session, studentId});
+  return session;
 }
 
-// Registers a new student with a student ID, password, and names.
-// studentId must be lowercase z followed by exactly 7 digits (e.g. z5555555)
-// nameFirst and nameLast must be 2-20 characters using only letters, spaces, hyphens or apostrophes
-// password must be at least 8 characters and contain at least one letter and one number
-// Returns { studentId } on success
-// Errors: INVALID_STUDENT_ID, INVALID_FIRST_NAME, INVALID_LAST_NAME, INVALID_PASSWORD
-export function authRegister(
+
+function getStudentIdFromSession(session: string): string | undefined {
+  const data = getData();
+  const entry = data.sessions.find(s => s.session === session);
+  return entry ? entry.studentId : undefined ;
+
+}
+/**
+ * Registers a new student with a student ID, password, and names.
+ * @param {string} studentId must be lowercase z followed by exactly 7 digits (e.g. z5555555)
+ * @param {string} password must be at least 8 characters and contain at least one letter and one number
+ * @param {string} nameFirst must be 2-20 characters using only letters, spaces, hyphens or apostrophes
+ * @param {string} nameLast must be 2-20 characters using only letters, spaces, hyphens or apostrophes
+ * @returns {{ studentId }} on success
+ * Errors: INVALID_STUDENT_ID, INVALID_FIRST_NAME, INVALID_LAST_NAME, INVALID_PASSWORD
+ */
+function authRegister(
   studentId: string,
   password: string,
   nameFirst: string,
-  nameLast: string
-): Result<Pick<Student, 'studentId'>> {
-  if (!isValidStudentIdFormat(studentId)) {
+  nameLast: string): Result<AuthResult> {
+  const data = getData();
+
+  if (!ZID_REGEX.test(studentId)) {
     return { error: 'INVALID_STUDENT_ID', message: 'Student ID is not in the correct format' };
   }
 
-  if (isStudentIdTaken(studentId)) {
-    return { error: 'INVALID_STUDENT_ID', message: 'Student is already taken' };
+  // studentId must not already be taken by another user
+  for (const user of data.users) {
+    if (user.studentId === studentId) {
+      return { error: 'INVALID_STUDENT_ID', message: 'Student is already taken' };
+    }
   }
 
-  if (!isValidName(nameFirst)) {
+  const nameF = NAME_REGEX.test(nameFirst);
+  if (nameFirst.length < 2 || nameFirst.length > 20 || !nameF) {
     return { error: 'INVALID_FIRST_NAME', message: 'First name is not in the correct format' };
   }
 
-  if (!isValidName(nameLast)) {
+  const nameL = NAME_REGEX.test(nameLast);
+  if (nameLast.length < 2 || nameLast.length > 20 || !nameL) {
     return { error: 'INVALID_LAST_NAME', message: 'Last name is not in the correct format' };
   }
 
-  if (!isValidPassword(password)) {
+  if (!validatePassword(password)) {
     return { error: 'INVALID_PASSWORD', message: 'Password is not in the correct format' };
   }
 
-  const data = getData();
-  const newStudent: Student = {
+  data.users.push({
     studentId,
-    password,
+    password: hashPassword(password),
     nameFirst,
     nameLast,
-  };
-  data.users.push(newStudent);
+  });
 
-  return { studentId };
+  const session = createSession(studentId);
+  return { session };
 }
 
 // Logs in a registered student given their studentId and password.
 // Both studentId and password must match a registered user exactly.
 // Returns { studentId } on success
 // Errors: INVALID_CREDENTIALS if studentId does not exist or password is incorrect
-export function authLogin(studentId: string, password: string): Result<Pick<Student, 'studentId'>> {
+function authLogin(studentId: string, password: string): Result<AuthResult> {
   const data = getData();
   const user = data.users.find(u => u.studentId === studentId);
   if (user === undefined) {
     return { error: 'INVALID_CREDENTIALS', message: 'Student ID does not exist' };
   }
 
-  if (user.password !== password) {
+  if (user.password !== hashPassword(password)) {
     return { error: 'INVALID_CREDENTIALS', message: 'Password is incorrect' };
   }
-
-  return { studentId };
+  const session = createSession(studentId);
+  return { session };
 }
+
+
+export { authRegister, authLogin, getStudentIdFromSession};

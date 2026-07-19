@@ -6,11 +6,23 @@ export type ExamStatus = 'NOT_ATTEMPTED' | 'ATTEMPTED';
 export type ExamOutcome = 'NIL' | 'PASS' | 'FAIL';
 export type ActionType = 'DOOM_SCROLLING' | 'STUDYING' | 'SLEEPING' | 'EATING' | 'EXERCISING';
 
+export interface Session {
+  session: string;
+  studentId: string;
+}
 export interface Student {
   studentId: string;
   password: string;
   nameFirst: string;
   nameLast: string;
+}
+
+export interface SocialConnection {
+  connectionId: string;
+  simulationId: number;
+  name: string;
+  closeness: number; // 1-5
+  createdAt: number; // simulation timeElapsed at creation
 }
 
 export interface Course {
@@ -69,6 +81,8 @@ export interface Simulation {
 export interface AppData {
   users: Student[];
   simulations: Simulation[];
+  sessions: Session[];
+  socialConnections: SocialConnection[];
 }
 
 export interface ErrorResponse {

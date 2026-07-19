@@ -1,67 +1,171 @@
-// Tests for authRegister and authLogin in auth.js
-// Covers: valid registration, all invalid input cases, valid login, and invalid credentials
-import { authRegister, authLogin } from '../auth.js';
-import { clearData } from '../dataStore.js';
-import { describe, test, expect, beforeEach } from 'vitest';
+// HTTP tests for POST /auth/register and POST /auth/login
+// Sends real requests to the running server and checks status codes + response bodies
+// DELETE /clear resets state before each test
+import {describe, test, expect, beforeEach } from 'vitest';
+import request from 'sync-request-curl';
+import config from '../config.json' with { type: 'json'};
+
+const SERVER_URL = `${config.url}:${config.port}`;
 
 beforeEach(() => {
-  clearData();
+  request('DELETE', `${SERVER_URL}/clear`);
 });
 
-// Tests that authRegister correctly validates all inputs and registers a new student.
-// studentId must be lowercase z + 7 digits, names 2-20 chars, password 8+ chars with letter and number.
-// Errors: INVALID_STUDENT_ID, INVALID_FIRST_NAME, INVALID_LAST_NAME, INVALID_PASSWORD
-describe('authRegister', () => {
-  test('valid registration returns studentId', () => {
-    const result = authRegister('z5712149', 'abc123!!', 'Saniya', 'Khan');
-    expect(result).toStrictEqual({ studentId: 'z5712149' });
+
+describe('POST /auth/register', () => {
+  test('valid registration returns a session', () => {
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      }
+    });
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(200);
+    expect(body).toStrictEqual({ session: expect.any(String) });
   });
 
   test('invalid studentId format returns error', () => {
-    const result = authRegister('invalid', 'abc123!!', 'Saniya', 'Khan');
-    expect(result).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'invalid',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      }
+    });
+
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(400);
+    expect(body).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
   });
 
   test('duplicate studentId returns error', () => {
-    authRegister('z5712149', 'abc123!!', 'Saniya', 'Khan');
-    const result = authRegister('z5712149', 'abc123!!', 'Saniya', 'Khan');
-    expect(result).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
+    // first request registers the student successfully; second request re-uses
+    // the same studentId and should be rejected as already taken
+    request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+    } });
+
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+
+    } });
+
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(400);
+    expect(body).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
   });
 
-  test('invalid first name returns error', () => {
-    const result = authRegister('z5712149', 'abc123!!', 'S', 'Khan');
-    expect(result).toStrictEqual({ error: 'INVALID_FIRST_NAME', message: expect.any(String) });
+  test('invalid nameFirst returns error', () => {
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'S',
+        nameLast: 'Khan',
+      } });
+
+      const body = JSON.parse(res.body.toString());
+      expect(res.statusCode).toBe(400);
+      expect(body).toStrictEqual({ error: 'INVALID_FIRST_NAME', message: expect.any(String)});
   });
 
-  test('invalid last name returns error', () => {
-    const result = authRegister('z5712149', 'abc123!!', 'Saniya', 'K');
-    expect(result).toStrictEqual({ error: 'INVALID_LAST_NAME', message: expect.any(String) });
+  test('invalid nameLast return error', () => {
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'K',
+      } });
+
+      const body = JSON.parse(res.body.toString());
+      expect(res.statusCode).toBe(400);
+      expect(body).toStrictEqual({ error: 'INVALID_LAST_NAME', message: expect.any(String)});
   });
 
-  test('invalid password returns error', () => {
-    const result = authRegister('z5712149', 'short', 'Saniya', 'Khan');
-    expect(result).toStrictEqual({ error: 'INVALID_PASSWORD', message: expect.any(String) });
+  test('invalid password return error', () => {
+    const res = request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'short',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      } });
+
+      const body = JSON.parse(res.body.toString());
+      expect(res.statusCode).toBe(400);
+      expect(body).toStrictEqual({ error: 'INVALID_PASSWORD', message: expect.any(String)});
   });
 });
 
-// Tests that authLogin correctly validates credentials and returns the studentId.
-// Both studentId and password must match exactly.
-// Errors: INVALID_CREDENTIALS
-describe('authLogin', () => {
-  test('valid login returns studentId', () => {
-    authRegister('z5712149', 'abc123!!', 'Saniya', 'Khan');
-    const result = authLogin('z5712149', 'abc123!!');
-    expect(result).toStrictEqual({ studentId: 'z5712149' });
+
+describe ('POST /auth/login', () => {
+  // register a student first so there's a real account to log in against.
+  test('valid login returns a session', () => {
+    request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      }
+    });
+
+    const res = request('POST', `${SERVER_URL}/auth/login`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+      }
+    });
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(200);
+    expect(body).toStrictEqual({ session: expect.any(String) });
   });
 
-  test('wrong studentId returns error', () => {
-    const result = authLogin('z9999999', 'abc123!!');
-    expect(result).toStrictEqual({ error: 'INVALID_CREDENTIALS', message: expect.any(String) });
+
+  test('invalid studentId returns error', () => {
+    const res = request('POST', `${SERVER_URL}/auth/login`, {
+      json: {
+        studentId: 'invalid',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      }
+    });
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(400);
+    expect(body).toStrictEqual({error: 'INVALID_CREDENTIALS', message: expect.any(String)});
   });
 
-  test('wrong password returns error', () => {
-    authRegister('z5712149', 'abc123!!', 'Saniya', 'Khan');
-    const result = authLogin('z5712149', 'wrongpassword1');
-    expect(result).toStrictEqual({ error: 'INVALID_CREDENTIALS', message: expect.any(String) });
+   test('invalid password returns error', () => {
+    request('POST', `${SERVER_URL}/auth/register`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'abc123!!',
+        nameFirst: 'Saniya',
+        nameLast: 'Khan',
+      }
+    });
+    const res = request('POST', `${SERVER_URL}/auth/login`, {
+      json: {
+        studentId: 'z5712149',
+        password: 'wrongPassword',
+      }
+    });
+    const body = JSON.parse(res.body.toString());
+    expect(res.statusCode).toBe(400);
+    expect(body).toStrictEqual({error: 'INVALID_CREDENTIALS', message: expect.any(String)});
   });
 });
