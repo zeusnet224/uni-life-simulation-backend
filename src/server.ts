@@ -10,6 +10,7 @@ import { authRegister, authLogin } from './auth.js';
 import { clear } from './other.js';
 import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
 import { getStudentIdFromSession } from './auth.js';
+import { societyList, societyJoin, societyAttend } from './society.js';
 import {
   simulationCreate,
   simulationStatus,
@@ -18,6 +19,13 @@ import {
   simulationGetLastAction,
   simulationGetConcludingNotification,
 } from './simulation.js';
+import {
+  courseRetrieveCourses,
+  courseRetrieveExams,
+  courseRetrieveCourseDetails,
+  courseRetrieveExamDetails,
+  courseCompletion,
+} from './course.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -308,6 +316,149 @@ app.delete('/simulations/:simulationId/connections/:connectionId', (req: Request
   }
   return res.json(result);
 });
+
+// lists societies not yet joined in a simulation
+app.get('/simulations/:simulationId/societies', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const result = societyList(studentId, simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// joins a society in a simulation
+app.post('/simulations/:simulationId/societies/:societyId/join', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const societyId = req.params.societyId;
+  const result = societyJoin(studentId, simulationId, societyId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// attends a joined society for a duration
+app.post('/simulations/:simulationId/societies/:societyId/attend', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const societyId = req.params.societyId;
+  const { duration } = req.body;
+  const result = societyAttend(studentId, simulationId, societyId, duration);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// lists all courses in a simulation
+app.get('/simulations/:simulationId/courses', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const result = courseRetrieveCourses(simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// lists all exams in a simulation
+app.get('/simulations/:simulationId/exams', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const result = courseRetrieveExams(simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// returns full details for a specific course
+app.get('/simulations/:simulationId/courses/:courseId', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const courseId = req.params.courseId;
+  const result = courseRetrieveCourseDetails(courseId, simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// returns full details for a specific exam
+app.get('/simulations/:simulationId/exams/:examId', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const examId = req.params.examId;
+  const result = courseRetrieveExamDetails(simulationId, examId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// returns the completion status of a course for the student
+app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const courseId = req.params.courseId;
+  const result = courseCompletion(courseId, studentId, simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
