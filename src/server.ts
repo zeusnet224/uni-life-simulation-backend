@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
 import { authRegister, authLogin } from './auth.js';
+import { clearData } from './dataStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +65,11 @@ app.post('/auth/login', (req: Request, res: Response) => {
   res.json(result);
 });
 
-
+// clears the data
+app.delete('/clear', (req: Request, res: Response) => {
+  clearData();
+  res.json({});
+});
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
