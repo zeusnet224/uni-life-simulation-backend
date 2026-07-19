@@ -4,7 +4,6 @@
 import fs from 'fs';
 import { AppData, UniverseData, ErrorResponse } from './types.js';
 
-
 function createInitialData(): AppData {
   return {
     users: [],
