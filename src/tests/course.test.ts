@@ -30,28 +30,35 @@ beforeEach(() => {
   request('DELETE', SERVER_URL + '/clear', { timeout: TIMEOUT_MS });
 });
 
-function register() {
+// Registers a student and returns their session token.
+function register(): string {
   const res = request('POST', SERVER_URL + '/auth/register',
     { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
       timeout: TIMEOUT_MS });
-  return JSON.parse(res.body.toString()).studentId;
+  return JSON.parse(res.body.toString()).session;
 }
 
-function createSimulation(studentId: string) {
-  const res = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
+// Creates a simulation for the given session and returns its simulationId.
+function createSimulation(session: string): number {
+  const res = request('POST', SERVER_URL + '/simulations', {
+    headers: { session },
+    json: { universeData: customUniverse },
+    timeout: TIMEOUT_MS
+  });
   return JSON.parse(res.body.toString()).simulationId;
 }
 
 describe('GET /simulations/:simulationId/courses', () => {
   test('return invalid simulation error', () => {
-    const res = request('GET', SERVER_URL + '/simulations/5000/courses', { timeout: TIMEOUT_MS });
+    const session = register();
+    const res = request('GET', SERVER_URL + '/simulations/5000/courses', { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
   test('return valid courses', () => {
-    const studentId = register();
-    const simulationId = createSimulation(studentId);
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
       courses: [
         {
@@ -65,16 +72,16 @@ describe('GET /simulations/:simulationId/courses', () => {
 
 describe('GET /simulations/:simulationId/exams', () => {
   test('return invalid simulation error', () => {
-    const studentId = register();
-    createSimulation(studentId);
-    const res = request('GET', SERVER_URL + '/simulations/5000/exams', { timeout: TIMEOUT_MS });
+    const session = register();
+    createSimulation(session);
+    const res = request('GET', SERVER_URL + '/simulations/5000/exams', { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
   test('return valid exams', () => {
-    const studentId = register();
-    const simulationId = createSimulation(studentId);
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
       exams: [
         {
@@ -90,27 +97,22 @@ describe('GET /simulations/:simulationId/exams', () => {
 
 describe('GET /simulations/:simulationId/courses/:courseId', () => {
   test('return invalid stimulation error', () => {
-    const res = request('GET', SERVER_URL + '/simulations/67/courses/COMP1531', { timeout: TIMEOUT_MS });
+    const session = register();
+    const res = request('GET', SERVER_URL + '/simulations/67/courses/COMP1531', { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
   test('return invalid course error', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register', { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' }, timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/MATH1081`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/MATH1081`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_COURSE', message: expect.any(String) });
   });
 
   test('return valid course details', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register',
-      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
-        timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/COMP1531`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/COMP1531`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
       course: [
         {
@@ -126,29 +128,22 @@ describe('GET /simulations/:simulationId/courses/:courseId', () => {
 
 describe('GET /simulations/:simulationId/exams/:examId', () => {
   test('return invalid stimulation error', () => {
-    const res = request('GET', SERVER_URL + '/simulations/1/exams/E1-COMP1531', { timeout: TIMEOUT_MS });
+    const session = register();
+    const res = request('GET', SERVER_URL + '/simulations/1/exams/E1-COMP1531', { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
   test('return invalid exam error', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register',
-      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
-        timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams/TROLLEXAM`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams/TROLLEXAM`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_EXAM', message: expect.any(String) });
   });
 
   test('return valid exam details', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register',
-      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
-        timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams/E1-COMP1531`, { timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/exams/E1-COMP1531`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
       exam: [
         {
@@ -162,34 +157,29 @@ describe('GET /simulations/:simulationId/exams/:examId', () => {
   });
 });
 
-describe('courseCompletion', () => {
-  test('return invalid student id error', () => {
-    const res = request('POST', SERVER_URL + '/simulations/1/courses/COMP1531/complete', { json: { studentId: 'z1111111' }, timeout: TIMEOUT_MS });
-    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
+describe('GET /simulations/:simulationId/courses/:courseId/completion', () => {
+  test('return invalid student id error (no session)', () => {
+    const res = request('GET', SERVER_URL + '/simulations/1/courses/COMP1531/completion', { timeout: TIMEOUT_MS });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'UNAUTHORISED', message: expect.any(String) });
   });
 
   test('return invalid stimulation error', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register', { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' }, timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const res = request('POST', SERVER_URL + '/simulations/67/courses/COMP1531/complete', { json: { studentId }, timeout: TIMEOUT_MS });
+    const session = register();
+    const res = request('GET', SERVER_URL + '/simulations/67/courses/COMP1531/completion', { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
   test('return invalid course error', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register', { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' }, timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('POST', SERVER_URL + `/simulations/${simulationId}/courses/MATH1081/complete`, { json: { studentId }, timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/MATH1081/completion`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_COURSE', message: expect.any(String) });
   });
 
   test('return course completion', () => {
-    const regRes = request('POST', SERVER_URL + '/auth/register', { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' }, timeout: TIMEOUT_MS });
-    const { studentId } = JSON.parse(regRes.body.toString());
-    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
-    const { simulationId } = JSON.parse(simRes.body.toString());
-    const res = request('POST', SERVER_URL + `/simulations/${simulationId}/courses/COMP1531/complete`, { json: { studentId }, timeout: TIMEOUT_MS });
+    const session = register();
+    const simulationId = createSimulation(session);
+    const res = request('GET', SERVER_URL + `/simulations/${simulationId}/courses/COMP1531/completion`, { headers: { session }, timeout: TIMEOUT_MS });
     expect(JSON.parse(res.body.toString())).toStrictEqual({
       course: [
         {
