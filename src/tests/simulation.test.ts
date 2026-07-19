@@ -1,26 +1,13 @@
 // Tests for simulationCreate, simulationStatus and simulationsList in simulation.js
 // Covers: error validation, DROPPED_OUT conditions from energy/happiness/course/exam failures
 import { describe, expect, test, beforeEach } from 'vitest';
-import { simulationCreate, simulationStatus } from '../simulation.js';
-import { authRegister } from '../auth.js';
-import { loadData } from '../dataStore.js';
-import { simulationApplyAction } from '../action.js';
-import { clear } from '../other.js';
-import { UniverseData } from '../types.js';
+import request from 'sync-request-curl';
+import config from './config.json' with { type: 'json' };
 
-type SimulationStatusResult = {
-  simulationStatus: string;
-  currentActivity: string;
-  energy: number;
-  happiness: number;
-  timeElapsed: number;
-  error?: string;
-  message?: string;
-};
+const { port, url } = config;
 
-function status(studentId: string, simulationId: number): SimulationStatusResult {
-  return simulationStatus(studentId, simulationId) as SimulationStatusResult;
-}
+const SERVER_URL = `${url}:${port}`;
+const TIMEOUT_MS = 5 * 1000;
 
 const customUniverse = {
   courses: [
@@ -49,30 +36,41 @@ const customUniverse2 = {
 };
 
 beforeEach(() => {
-  clear();
+  request('DELETE', SERVER_URL + '/clear', { timeout: TIMEOUT_MS });
 });
 
 // Tests that simulationStatus returns the correct error when given invalid inputs.
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
 describe('simulationStatus return errors', () => {
-  test('Returns an error for invalid StudentId that doesnt exist', () => {
-    authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith');
-    const testSim = status('z7654321', 100);
-    expect(testSim).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
+  test('return invalid student id', () => {
+    const res = request('GET', SERVER_URL + '/simulation/1', { qs: { studentId: 'z7654321' }, timeout: TIMEOUT_MS });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_STUDENT_ID', message: expect.any(String) });
   });
 
-  test('Returns an error for invalid SimulationId that doesnt exist', () => {
-    const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const testSim = status(studentId, 50000);
-    expect(testSim).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
+  test('return invalid simulation id', () => {
+    const register = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+        timeout: TIMEOUT_MS });
+    const { studentId } = JSON.parse(register.body.toString());
+    const res = request('GET', SERVER_URL + '/simulation/50000', { qs: { studentId }, timeout: TIMEOUT_MS });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 
-  test('Returns an error for invalid SimulationId that does not belong to given student', () => {
-    const { studentId: studentId1 } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const { studentId: studentId2 } = authRegister('z7654321', 'Pikachu123', 'Ash', 'Ketchum') as { studentId: string };
-    const { simulationId } = simulationCreate(studentId1, customUniverse) as { simulationId: number };
-    const testSim = status(studentId2, simulationId);
-    expect(testSim).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
+  test('return invalid simulation when simulation belongs to another student', () => {
+    const res1 = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+        timeout: TIMEOUT_MS });
+    const student1 = JSON.parse(res1.body.toString());
+    const res2 = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z7654321', password: 'Pikachu123', nameFirst: 'Ash', nameLast: 'Ketchum' },
+        timeout: TIMEOUT_MS });
+    const student2 = JSON.parse(res2.body.toString());
+    const simRes = request('POST', SERVER_URL + '/simulation/create',
+      { json: { studentId: student1.studentId, universe: customUniverse },
+        timeout: TIMEOUT_MS });
+    const sim = JSON.parse(simRes.body.toString());
+    const res = request('GET', SERVER_URL + `/simulation/${sim.simulationId}`, { qs: { studentId: student2.studentId }, timeout: TIMEOUT_MS });
+    expect(JSON.parse(res.body.toString())).toStrictEqual({ error: 'INVALID_SIMULATION', message: expect.any(String) });
   });
 });
 
@@ -84,70 +82,92 @@ describe('simulationStatus return errors', () => {
 // - 5 or more total exam failures
 describe('simulationStatus returns DROPPED_OUT', () => {
   test('Energy reaches 0 points', () => {
-    const universeData = loadData('universes/universe1.json') as UniverseData;
-    const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const { simulationId } = simulationCreate(studentId, universeData) as { simulationId: number };
-    const examId = universeData.exams[0].examId;
-
-    for (let count = 0; count < 9; count++) {
-      simulationApplyAction(studentId, simulationId, 'STUDYING', 3, examId);
-      simulationApplyAction(studentId, simulationId, 'DOOM_SCROLLING', 1, examId);
+    const reg = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+        timeout: TIMEOUT_MS });
+    const { studentId } = JSON.parse(reg.body.toString());
+    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
+    const { simulationId } = JSON.parse(simRes.body.toString());
+    for (let i = 0; i < 9; i++) {
+      request('POST', SERVER_URL + `/simulation/${simulationId}/action`,
+        { json: { studentId, action: 'STUDYING', duration: 3, examId: '1' },
+          timeout: TIMEOUT_MS });
+      request('POST', SERVER_URL + `/simulation/${simulationId}/action`,
+        { json: { studentId, action: 'DOOM_SCROLLING', duration: 1, examId: '1' },
+          timeout: TIMEOUT_MS });
     }
-
-    const testSim = status(studentId, simulationId);
-    expect(testSim).toStrictEqual({
+    const res = request('GET', SERVER_URL + `/simulation/${simulationId}`, { qs: { studentId }, timeout: TIMEOUT_MS });
+    const body = JSON.parse(res.body.toString());
+    expect(body).toStrictEqual({
       simulationStatus: 'DROPPED_OUT',
-      currentActivity: testSim.currentActivity,
+      currentActivity: body.currentActivity,
       energy: 0,
-      happiness: testSim.happiness,
-      timeElapsed: testSim.timeElapsed,
+      happiness: body.happiness,
+      timeElapsed: body.timeElapsed
     });
   });
 
   test('Happiness reaches 0 points', () => {
-    const universeData = loadData('universes/universe1.json') as UniverseData;
-    const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const { simulationId } = simulationCreate(studentId, universeData) as { simulationId: number };
-    const examId = universeData.exams[0].examId;
-
-    for (let count = 0; count < 5; count++) {
-      simulationApplyAction(studentId, simulationId, 'STUDYING', 3, examId);
-      simulationApplyAction(studentId, simulationId, 'SLEEPING', 3, examId);
+    const reg = request('POST', SERVER_URL + '/auth/register', {
+      json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+      timeout: TIMEOUT_MS });
+    const { studentId } = JSON.parse(reg.body.toString());
+    const simRes = request('POST', SERVER_URL + '/simulation/create', {
+      json: { studentId, universe: customUniverse },
+      timeout: TIMEOUT_MS });
+    const { simulationId } = JSON.parse(simRes.body.toString());
+    for (let i = 0; i < 5; i++) {
+      request('POST', SERVER_URL + `/simulation/${simulationId}/action`,
+        { json: { studentId, action: 'STUDYING', duration: 3, examId: '1' },
+          timeout: TIMEOUT_MS });
+      request('POST', SERVER_URL + `/simulation/${simulationId}/action`,
+        { json: { studentId, action: 'SLEEPING', duration: 3, examId: '1' },
+          timeout: TIMEOUT_MS });
     }
-
-    const testSim = status(studentId, simulationId);
-    expect(testSim).toStrictEqual({
+    const res = request('GET', SERVER_URL + `/simulation/${simulationId}`, { qs: { studentId }, timeout: TIMEOUT_MS });
+    const body = JSON.parse(res.body.toString());
+    expect(body).toStrictEqual({
       simulationStatus: 'DROPPED_OUT',
-      currentActivity: testSim.currentActivity,
-      energy: testSim.energy,
-      happiness: 0,
-      timeElapsed: testSim.timeElapsed,
+      currentActivity: body.currentActivity,
+      energy: body.energy, happiness: 0,
+      timeElapsed: body.timeElapsed
     });
   });
 
   test('Course receives FAILED status', () => {
-    const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const { simulationId } = simulationCreate(studentId, customUniverse) as { simulationId: number };
-    const testSim = status(studentId, simulationId);
-    expect(testSim).toStrictEqual({
+    const reg = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+        timeout: TIMEOUT_MS });
+    const { studentId } = JSON.parse(reg.body.toString());
+    const simRes = request('POST', SERVER_URL + '/simulation/create', { json: { studentId, universe: customUniverse }, timeout: TIMEOUT_MS });
+    const { simulationId } = JSON.parse(simRes.body.toString());
+    const res = request('GET', SERVER_URL + `/simulation/${simulationId}`, { qs: { studentId }, timeout: TIMEOUT_MS });
+    const body = JSON.parse(res.body.toString());
+    expect(body).toStrictEqual({
       simulationStatus: 'DROPPED_OUT',
-      currentActivity: testSim.currentActivity,
-      energy: testSim.energy,
-      happiness: testSim.happiness,
-      timeElapsed: testSim.timeElapsed,
-    });
+      currentActivity: body.currentActivity,
+      energy: body.energy,
+      happiness: body.happiness, timeElapsed:
+      body.timeElapsed });
   });
 
   test('5 total exams failed', () => {
-    const { studentId } = authRegister('z1234567', 'ILoveComp1531', 'John', 'Smith') as { studentId: string };
-    const { simulationId } = simulationCreate(studentId, customUniverse2) as { simulationId: number };
-    const testSim = status(studentId, simulationId);
-    expect(testSim).toStrictEqual({
+    const reg = request('POST', SERVER_URL + '/auth/register',
+      { json: { studentId: 'z1234567', password: 'ILoveComp1531', nameFirst: 'John', nameLast: 'Smith' },
+        timeout: TIMEOUT_MS });
+    const { studentId } = JSON.parse(reg.body.toString());
+    const simRes = request('POST', SERVER_URL + '/simulation/create', {
+      json: { studentId, universe: customUniverse2 },
+      timeout: TIMEOUT_MS });
+    const { simulationId } = JSON.parse(simRes.body.toString());
+    const res = request('GET', SERVER_URL + `/simulation/${simulationId}`, { qs: { studentId }, timeout: TIMEOUT_MS });
+    const body = JSON.parse(res.body.toString());
+    expect(body).toStrictEqual({
       simulationStatus: 'DROPPED_OUT',
-      currentActivity: testSim.currentActivity,
-      energy: testSim.energy,
-      happiness: testSim.happiness,
-      timeElapsed: testSim.timeElapsed,
+      currentActivity: body.currentActivity,
+      energy: body.energy,
+      happiness: body.happiness,
+      timeElapsed: body.timeElapsed
     });
   });
 });

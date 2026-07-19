@@ -2,7 +2,6 @@ import { getData } from './dataStore.js';
 import { Student, Result } from './types.js';
 import crypto from 'crypto';
 
-
 interface AuthResult {
   session: string;
 }
@@ -30,16 +29,14 @@ function hashPassword(password: string): string {
 function createSession(studentId: string): string {
   const data = getData();
   const session = crypto.randomUUID();
-  data.sessions.push({ session, studentId});
+  data.sessions.push({ session, studentId });
   return session;
 }
-
 
 function getStudentIdFromSession(session: string): string | undefined {
   const data = getData();
   const entry = data.sessions.find(s => s.session === session);
-  return entry ? entry.studentId : undefined ;
-
+  return entry ? entry.studentId : undefined;
 }
 /**
  * Registers a new student with a student ID, password, and names.
@@ -111,5 +108,4 @@ function authLogin(studentId: string, password: string): Result<AuthResult> {
   return { session };
 }
 
-
-export { authRegister, authLogin, getStudentIdFromSession};
+export { authRegister, authLogin, getStudentIdFromSession };
