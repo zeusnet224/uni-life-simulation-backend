@@ -10,7 +10,7 @@ info:
   license:
     name: UNSW course specification
     url: https://www.unsw.edu.au
- 
+
 schemes:
   - http
 
@@ -59,6 +59,20 @@ x-components:
     FriendId:
       type: integer
       example: 1234
+    ConnectionId:
+      type: string
+      example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+      description: Randomly generated unique identifier for a social connection
+    ConnectionName:
+      type: string
+      example: Jamie Park
+      description: Display name of the social connection (2-50 characters)
+    Closeness:
+      type: integer
+      example: 3
+      minimum: 1
+      maximum: 5
+      description: Closeness/support value from 1 (LOW) to 5 (HIGH). Affects wellbeing activities that depend on social support.
     ClubId:
       type: string
       example: csesoc
@@ -178,7 +192,18 @@ x-components:
           description: Happiness or wellbeing bonus used by group-designed social features. Groups should document how this value affects activities, plans, readiness, or recommendations.
         addedAt:
           $ref: '#/x-components/prim/Timestamp'
-
+    SocialConnection:
+      type: object
+      properties:
+        connectionId:
+          $ref: '#/x-components/prim/ConnectionId'
+        name:
+          $ref: '#/x-components/prim/ConnectionName'
+        closeness:
+          $ref: '#/x-components/prim/Closeness'
+        createdAt:
+          $ref: '#/x-components/prim/TimeElapsed'
+          description: Simulation timeElapsed value at the time the connection was created
     Club:
       type: object
       properties:
@@ -269,6 +294,11 @@ x-components:
       name: friendId
       required: true
       type: integer
+    ConnectionId:
+      in: path
+      name: connectionId
+      required: true
+      type: string
     ClubId:
       in: path
       name: clubId
@@ -399,6 +429,20 @@ x-components:
             type: string
             example: Jordan Lee
             description: Name of the NPC friend to add
+    SocialConnectionCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - name
+          - closeness
+        properties:
+          name:
+            $ref: '#/x-components/prim/ConnectionName'
+          closeness:
+            $ref: '#/x-components/prim/Closeness'
     UniverseCreate:
       in: body
       name: body
@@ -457,6 +501,18 @@ x-components:
           type: array
           items:
             $ref: '#/x-components/group/Friend'
+    ConnectionId:
+      type: object
+      properties:
+        connectionId:
+          $ref: '#/x-components/prim/ConnectionId'
+    ConnectionList:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/x-components/group/SocialConnection'
     FriendId:
       type: object
       properties:
@@ -664,3 +720,101 @@ paths:
   # Designed routes that mutate a simulation or simulation-owned state should reject ended simulations.
   # You may reuse, adapt, or replace the friend/club/course/universe schemas above, and should document any opportunity schema your group introduces.
   # Each route should include a summary, description, parameters, response schemas, and error cases.
+
+  /simulations/{simulationId}/connections:
+    post:
+      operationId: socialConnectionCreate
+      summary: Create a social connection
+      description: |
+        Creates a new social connection (friend, mentor, study buddy, or family member) for the given simulation.
+        Rejects duplicate connection names within the same simulation, and rejects creation if the simulation has already ended.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SocialConnectionCreate'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConnectionId'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+            - **INVALID_NAME**
+              - Name is empty, not a string, or over 50 characters
+            - **INVALID_CLOSENESS**
+              - Closeness is not an integer between 1 and 5
+            - **DUPLICATE_CONNECTION**
+              - A connection with this name already exists for this simulation
+          schema:
+            $ref: '#/x-components/return/Error'
+
+    get:
+      operationId: socialConnectionsList
+      summary: List social connections
+      description: Returns all social connections for the simulation.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConnectionList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/connections/{connectionId}:
+    delete:
+      operationId: socialConnectionRemove
+      summary: Remove a social connection
+      description: |
+        Removes a social connection from the given simulation. Rejects removal if the simulation has already ended.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/ConnectionId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Empty'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+            - **INVALID_CONNECTION**
+              - Connection ID does not exist for this simulation
+          schema:
+            $ref: '#/x-components/return/Error'
