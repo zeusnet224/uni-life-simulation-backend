@@ -26,6 +26,7 @@ import {
   courseRetrieveExamDetails,
   courseCompletion,
 } from './course.js'
+import { simulationApplyAction } from './action.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -138,23 +139,35 @@ app.post('/simulations', (req: Request, res: Response) => {
 // Lists all simulations owned by the authenticated student.
 app.get('/simulations/:simulationId', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
-
   if (!studentId) {
     return;
   }
-
   const simulationId = Number(req.params.simulationId);
-
   const result = simulationStatus(studentId, simulationId);
-
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
     }
-
     return res.status(400).json(result);
   }
+  return res.status(200).json(result);
+});
 
+// Applies an action (STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING) to a simulation.
+app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) {
+    return;
+  }
+  const simulationId = Number(req.params.simulationId);
+  const { action, duration, examId } = req.body;
+  const result = simulationApplyAction(studentId, simulationId, action, duration, examId);
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
   return res.status(200).json(result);
 });
 
@@ -340,7 +353,7 @@ app.post('/simulations/:simulationId/societies/:societyId/join', (req: Request, 
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const result = societyJoin(studentId, simulationId, societyId);
 
   if ('error' in result) {
@@ -358,7 +371,7 @@ app.post('/simulations/:simulationId/societies/:societyId/attend', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const { duration } = req.body;
   const result = societyAttend(studentId, simulationId, societyId, duration);
 
@@ -411,7 +424,7 @@ app.get('/simulations/:simulationId/courses/:courseId', (req: Request, res: Resp
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseRetrieveCourseDetails(courseId, simulationId);
 
   if ('error' in result) {
@@ -429,7 +442,7 @@ app.get('/simulations/:simulationId/exams/:examId', (req: Request, res: Response
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const examId = req.params.examId;
+  const examId = req.params.examId as string;
   const result = courseRetrieveExamDetails(simulationId, examId);
 
   if ('error' in result) {
@@ -447,7 +460,7 @@ app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseCompletion(courseId, studentId, simulationId);
 
   if ('error' in result) {
