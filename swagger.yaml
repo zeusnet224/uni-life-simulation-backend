@@ -1153,3 +1153,42 @@ paths:
               - Simulation does not exist or does not belong to the authenticated student
           schema:
             $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/exams/{examId}/readiness:
+    get:
+      operationId: examReadiness
+      summary: Get information to understand exam readiness
+      description: |
+        Returns academic readiness for exams that advises on exam risk and plan action.
+        The readiness model considers these factors:
+          1. Study progress
+          2. Required study amount for the exam
+          3. Wellbeing
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/ExamId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: Exam readiness information
+          schema:
+            $ref: '#/x-components/return/ExamReadiness'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+         400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+            - **INVALID_EXAM**
+              - Invalid examId does not exist in the simulation
+          schema:
+            $ref: '#/x-components/return/Error'
+
+
