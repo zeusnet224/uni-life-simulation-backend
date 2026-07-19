@@ -1,6 +1,6 @@
 // Do not delete this file before iteration 3
 import { describe, expect, test } from 'vitest';
-import { echo } from '../echo';
+import { echo } from '../echo.js';
 
 describe('echo', () => {
   test('returns the provided value', () => {
