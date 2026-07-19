@@ -73,7 +73,7 @@ describe('clear', () => {
 
     clear();
 
-    expect(registerStudent()).toStrictEqual({ studentId: STUDENT_ID });
+    expect(registerStudent()).toStrictEqual({ session: expect.any(String) });
   });
 
   test('resets simulationId generation after clearing', () => {

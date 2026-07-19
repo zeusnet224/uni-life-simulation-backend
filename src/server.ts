@@ -25,6 +25,7 @@ import {
   courseRetrieveExamDetails,
   courseCompletion,
 } from './course.js';
+import { simulationApplyAction } from './action.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -137,23 +138,35 @@ app.post('/simulations', (req: Request, res: Response) => {
 // Lists all simulations owned by the authenticated student.
 app.get('/simulations/:simulationId', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
-
   if (!studentId) {
     return;
   }
-
   const simulationId = Number(req.params.simulationId);
-
   const result = simulationStatus(studentId, simulationId);
-
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
     }
-
     return res.status(400).json(result);
   }
+  return res.status(200).json(result);
+});
 
+// Applies an action (STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING) to a simulation.
+app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) {
+    return;
+  }
+  const simulationId = Number(req.params.simulationId);
+  const { action, duration, examId } = req.body;
+  const result = simulationApplyAction(studentId, simulationId, action, duration, examId);
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
   return res.status(200).json(result);
 });
 
