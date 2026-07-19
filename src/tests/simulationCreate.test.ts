@@ -11,7 +11,7 @@ function registerStudent(studentId = STUDENT_ID) {
   return authRegister(studentId, PASSWORD, 'John', 'Smith');
 }
 
-function makeUniverse(overrides = {}) {
+function makeUniverse(overrides: Record<string, unknown> = {}) {
   return {
     courses: [
       {
