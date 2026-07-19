@@ -39,7 +39,7 @@ const customUniverse2 = {
       name: 'Software Engineering Fundamentals',
     }
   ],
-  exams : [
+  exams: [
     { examId: '1', examOutcome: 'FAIL' },
     { examId: '2', examOutcome: 'FAIL' },
     { examId: '3', examOutcome: 'FAIL' },

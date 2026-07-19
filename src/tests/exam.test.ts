@@ -52,14 +52,14 @@ const SIMPLE_UNIVERSE = {
     { courseId: 'COMP1531', name: 'Software Engineering Fundamentals' },
   ],
   exams: [
-    { examId: 'E1-COMP1531', courseId: 'COMP1531', name: 'Quiz 1',  requiredStudyHours: 2 },
+    { examId: 'E1-COMP1531', courseId: 'COMP1531', name: 'Quiz 1', requiredStudyHours: 2 },
     { examId: 'E2-COMP1531', courseId: 'COMP1531', name: 'Midterm', requiredStudyHours: 3 },
-    { examId: 'E3-COMP1531', courseId: 'COMP1531', name: 'Final',   requiredStudyHours: 1 },
+    { examId: 'E3-COMP1531', courseId: 'COMP1531', name: 'Final', requiredStudyHours: 1 },
   ],
 };
 
 const STUDENT_ID = 'z5555555';
-const PASSWORD   = 'ValidPass1';
+const PASSWORD = 'ValidPass1';
 
 function setupSim(universe = SIMPLE_UNIVERSE): number {
   authRegister(STUDENT_ID, PASSWORD, 'John', 'Smith');
@@ -67,7 +67,9 @@ function setupSim(universe = SIMPLE_UNIVERSE): number {
   return result.simulationId;
 }
 
-beforeEach(() => { clear(); });
+beforeEach(() => {
+  clear();
+});
 
 describe('examStudyProgress – INVALID_STUDENT_ID', () => {
   test('unregistered student', () => {
