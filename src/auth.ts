@@ -1,10 +1,6 @@
 import { getData } from './dataStore.js';
 import { Student, Result } from './types.js';
 
-interface AuthResult {
-  studentId: string;
-}
-
 // A name is valid if it is 2-20 characters long and contains only
 // letters, spaces, hyphens, or apostrophes.
 function isValidName(name: string): boolean {
@@ -38,12 +34,12 @@ function isStudentIdTaken(studentId: string): boolean {
 // password must be at least 8 characters and contain at least one letter and one number
 // Returns { studentId } on success
 // Errors: INVALID_STUDENT_ID, INVALID_FIRST_NAME, INVALID_LAST_NAME, INVALID_PASSWORD
-function authRegister(
+export function authRegister(
   studentId: string,
   password: string,
   nameFirst: string,
   nameLast: string
-): Result<AuthResult> {
+): Result<Pick<Student, 'studentId'>> {
   if (!isValidStudentIdFormat(studentId)) {
     return { error: 'INVALID_STUDENT_ID', message: 'Student ID is not in the correct format' };
   }
@@ -80,7 +76,7 @@ function authRegister(
 // Both studentId and password must match a registered user exactly.
 // Returns { studentId } on success
 // Errors: INVALID_CREDENTIALS if studentId does not exist or password is incorrect
-function authLogin(studentId: string, password: string): Result<AuthResult> {
+export function authLogin(studentId: string, password: string): Result<Pick<Student, 'studentId'>> {
   const data = getData();
   const user = data.users.find(u => u.studentId === studentId);
   if (user === undefined) {
@@ -93,5 +89,3 @@ function authLogin(studentId: string, password: string): Result<AuthResult> {
 
   return { studentId };
 }
-
-export { authRegister, authLogin };
