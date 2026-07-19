@@ -1,5 +1,5 @@
 import { getData } from './dataStore.js';
-import { Student, Result } from './types.js';
+import { Result } from './types.js';
 import crypto from 'crypto';
 
 interface AuthResult {

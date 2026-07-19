@@ -6,10 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
-import { authRegister, authLogin } from './auth.js';
+import { authRegister, authLogin, getStudentIdFromSession } from './auth.js';
 import { clear } from './other.js';
 import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
-import { getStudentIdFromSession } from './auth.js';
 import { societyList, societyJoin, societyAttend } from './society.js';
 import {
   simulationCreate,
@@ -25,7 +24,7 @@ import {
   courseRetrieveCourseDetails,
   courseRetrieveExamDetails,
   courseCompletion,
-} from './course.js'
+} from './course.js';
 import { simulationApplyAction } from './action.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -268,8 +267,6 @@ app.get(
     return res.status(200).json(result);
   }
 );
-
-
 
 // creates a social connection for a simulation
 app.post('/simulations/:simulationId/connections', (req: Request, res: Response) => {
