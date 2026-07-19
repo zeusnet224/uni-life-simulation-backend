@@ -16,7 +16,7 @@ function socialConnectionCreate(
   studentId: string,
   simulationId: number,
   name: string,
-  closeness: number ): Result<{ connectionId: string }> {
+  closeness: number): Result<{ connectionId: string }> {
   const data = getData();
 
   const simulation = findOwnedSimulationOrError(studentId, simulationId);

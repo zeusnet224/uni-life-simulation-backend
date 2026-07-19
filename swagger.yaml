@@ -137,6 +137,10 @@ x-components:
       type: integer
       example: 1
       description: Reusable academic effect value for group-designed opportunities, clubs, societies, events, or recommendation/readiness models. This is design-support data, not a prescribed exam formula.
+    OpportunityId:
+      type: string
+      example: peer-mentoring
+      description: Unique identifier for an extracurricular opportunity within a universe
 
   group:
     User:
@@ -296,6 +300,60 @@ x-components:
           example: false
           description: Whether the exam has been passed after it has been attempted and evaluated. Before an exam is attempted, implementations should expose this field consistently with their documented response shape, but it must not imply that an unattempted exam has been evaluated.
       description: All exams are weighted equally. Each course has 3 exams, and at least 2 must be passed (50% pass rate) to pass the course. If 2 or more exams are failed in a course, that course fails and triggers dropout.
+    OpportunityDefinition:
+      type: object
+      required:
+        - opportunityId
+        - name
+        - description
+        - happinessBonus
+        - academicBonus
+        - weeklyHours
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        name:
+          type: string
+          example: Peer Mentoring Program
+        description:
+          type: string
+          example: Attend weekly mentoring sessions with another student.
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        weeklyHours:
+          $ref: '#/x-components/prim/WeeklyHours'
+
+    OpportunityView:
+      type: object
+      required:
+        - opportunityId
+        - name
+        - description
+        - happinessBonus
+        - academicBonus
+        - weeklyHours
+        - isJoined
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        name:
+          type: string
+          example: Peer Mentoring Program
+        description:
+          type: string
+          example: Attend weekly mentoring sessions with another student.
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        weeklyHours:
+          $ref: '#/x-components/prim/WeeklyHours'
+        isJoined:
+          type: boolean
+          example: false
+          description: Whether the authenticated student has joined this opportunity in the simulation
 
   path:
     StudentIdPath:
@@ -341,6 +399,11 @@ x-components:
     UniverseName:
       in: path
       name: universeName
+      required: true
+      type: string
+    OpportunityId:
+      in: path
+      name: opportunityId
       required: true
       type: string
 
@@ -425,6 +488,12 @@ x-components:
           universeData:
             type: object
             description: The full universe configuration object passed directly in the request body (iteration 1 style).
+            properties:
+              opportunities:
+                type: array
+                description: Extracurricular opportunities available in this universe for Iteration 2 Story 4.
+                items:
+                  $ref: '#/x-components/group/OpportunityDefinition'
     SimulationAction:
       in: body
       name: body
@@ -556,6 +625,27 @@ x-components:
         notification:
           type: string
           example: Congratulations, this simulation has GRADUATED. No further actions can be applied.
+    OpportunityList:
+      type: object
+      required:
+        - opportunities
+      properties:
+        opportunities:
+          type: array
+          items:
+            $ref: '#/x-components/group/OpportunityView'
+
+    OpportunityMembership:
+      type: object
+      required:
+        - opportunityId
+        - isJoined
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        isJoined:
+          type: boolean
+          example: true
     FriendList:
       type: object
       properties:
@@ -1084,11 +1174,19 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
-/simulations/{simulationId}/societies:
+  /simulations/{simulationId}/societies:
+      get:
+        operationId: societyList
+        summary: List societies not yet joined
+        description: Returns all societies in the simulation's universe that the student has not yet joined.
+  /simulations/{simulationId}/opportunities:
     get:
-      operationId: societyList
-      summary: List societies not yet joined
-      description: Returns all societies in the simulation's universe that the student has not yet joined.
+      operationId: opportunitiesList
+      summary: List available extracurricular opportunities
+      description: |
+        Returns the opportunities defined by the simulation's universe and whether the authenticated student has joined each opportunity.
+        This route is read-only. Joining an opportunity does not immediately apply its happiness or academic bonus.
+
       tags:
         - "Iteration 2 (Designed)"
       parameters:
@@ -1098,7 +1196,11 @@ paths:
         200:
           description: OK
           schema:
+
             $ref: '#/x-components/return/SocietyList'
+
+            $ref: '#/x-components/return/OpportunityList'
+
         401:
           description: |
             - **UNAUTHORISED**
@@ -1108,6 +1210,7 @@ paths:
         403:
           description: |
             - **INVALID_SIMULATION**
+
               - Simulation does not exist or does not belong to the student
           schema:
             $ref: '#/x-components/return/Error'
@@ -1347,3 +1450,95 @@ paths:
                 - Course does not exist
             schema:
               $ref: '#/x-components/return/Error'
+
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/opportunities/{opportunityId}/join:
+    post:
+      operationId: opportunityJoin
+      summary: Join an extracurricular opportunity
+      description: |
+        Records the opportunity as joined for the authenticated student's simulation.
+        A simulation may have no more than 3 joined opportunities at one time.
+        Joining records membership only; benefits are applied later through activities, readiness calculations, or recommendations.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: Opportunity joined successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityMembership'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **ALREADY_JOINED**
+              - The opportunity has already been joined
+            - **OPPORTUNITY_LIMIT_REACHED**
+              - The simulation already has 3 joined opportunities
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/opportunities/{opportunityId}/leave:
+    delete:
+      operationId: opportunityLeave
+      summary: Leave an extracurricular opportunity
+      description: |
+        Removes a joined opportunity from the authenticated student's simulation.
+        Effects already applied by earlier activities, readiness calculations, or recommendations are not reversed.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: Opportunity left successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityMembership'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **OPPORTUNITY_NOT_JOINED**
+              - The opportunity has not been joined
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
