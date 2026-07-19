@@ -81,7 +81,9 @@ function setupSim(universe = SIMPLE_UNIVERSE): number {
   return result.simulationId;
 }
 
-beforeEach(() => { clear(); });
+beforeEach(() => {
+  clear();
+});
 
 // Tests that simulationsList returns all simulations belonging to a student,
 // each with summary info (simulationId, simulationStatus, currentActivity, timeElapsed).

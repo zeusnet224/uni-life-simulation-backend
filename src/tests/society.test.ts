@@ -77,7 +77,7 @@ describe('return societyList', () => {
           societyId: society.societyId,
           name: society.name,
           description: society.description
-      }))
+        }))
     });
   });
 });

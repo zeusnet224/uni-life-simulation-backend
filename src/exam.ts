@@ -24,9 +24,9 @@ export function examStudyProgress(
   }
 
   return {
-    examId:              exam.examId,
+    examId: exam.examId,
     studyHoursCompleted: exam.studyHoursCompleted,
-    requiredStudyHours:  exam.requiredStudyHours,
+    requiredStudyHours: exam.requiredStudyHours,
     ready: exam.studyHoursCompleted >= exam.requiredStudyHours,
   };
 }
@@ -108,9 +108,9 @@ export function examAttemptRecord(
   return {
     exam: [
       {
-        examId:      exam.examId,
-        name:        exam.name,
-        examStatus:  exam.examStatus,
+        examId: exam.examId,
+        name: exam.name,
+        examStatus: exam.examStatus,
         examOutcome: exam.examOutcome,
       }
     ]
