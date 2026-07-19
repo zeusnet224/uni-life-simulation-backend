@@ -58,7 +58,7 @@ Use this section to document the routes your group designed for the Student Well
 | Feature / story | Route(s) | Purpose | Request/response documented in `swagger.yaml`? |
 | --------------- | -------- | ------- | ---------------------------------------------- |
 | Story 1: View personalised recommendations |  |  |  |
-| Story 2: Understand social connection state |  |  |  |
+| Story 2: Understand social connection state | `POST /simulations/{simulationId}/connections`<br>`GET /simulations/{simulationId}/connections`<br>`DELETE /simulations/{simulationId}/connections/{connectionId}` | Create, inspect, and remove social connections (friends, mentors, study buddies, family) for a simulation. Each connection has a unique id, display name, closeness value (1-5), and creation timestamp. Prevents duplicate connection names within the same simulation. | Yes |
 | Story 3: Choose between wellbeing activities |  |  |  |
 | Story 4: Discover social opportunities |  |  |  |
 | Story 5: Inspect exam readiness |  |  |  |
@@ -71,7 +71,7 @@ Your Week 8 design check-in and Week 10 final demo must include a traceability t
 | Requirement / story | Designed route(s) | Acceptance criteria | HTTP tests | Demo evidence |
 | ------------------- | ----------------- | ------------------- | ---------- | ------------- |
 | Story 1: View personalised recommendations |  |  |  |  |
-| Story 2: Understand social connection state |  |  |  |  |
+| Story 2: Understand social connection state | `POST /simulations/{simulationId}/connections`<br>`GET /simulations/{simulationId}/connections`<br>`DELETE /simulations/{simulationId}/connections/{connectionId}` | Create/inspect/remove connections; unique id, name, closeness, timestamp per connection; duplicate names rejected; mutating routes reject ended simulations | Pending — blocked on `POST /simulations` HTTP route not yet implemented | TBD |
 | Story 3: Choose between wellbeing activities |  |  |  |  |
 | Story 4: Discover social opportunities |  |  |  |  |
 | Story 5: Inspect exam readiness |  |  |  |  |
@@ -85,3 +85,5 @@ Use this section for design decisions that do not fit neatly into `swagger.yaml`
 - how opportunities are loaded or generated;
 - how exam readiness is calculated;
 - assumptions, limitations, or known trade-offs.
+
+- **Social connections**: represented as a flat list on `AppData.socialConnections`, each entry storing `connectionId` (randomly generated UUID), `simulationId`, `name`, `closeness` (integer 1-5), and `createdAt` (the simulation's `timeElapsed` value at creation time). Closeness is intended to later influence wellbeing activities and recommendations that depend on social support, though that integration is not yet wired up pending the relevant activity/recommendation routes.
