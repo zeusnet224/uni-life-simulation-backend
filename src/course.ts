@@ -1,42 +1,13 @@
 import { findSimulationOrError, findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
-import { Result } from './types.js';
-
-interface CourseSummary {
-  courseId: string;
-  name: string;
-}
-
-interface ExamSummary {
-  examId: string;
-  courseId: string;
-  name: string;
-  requiredStudyHours: number;
-}
-
-interface CourseDetails {
-  courseId: string;
-  name: string;
-  courseDetails?: string;
-  courseStatus: string;
-}
-
-interface ExamDetails {
-  examId: string;
-  courseId: string;
-  name: string;
-  requiredStudyHours: number;
-}
-
-interface CourseCompletionResult {
-  courseId: string;
-  courseStatus: string;
-}
+import { Course, Exam, Result } from './types.js';
 
 // Returns a summary list of all courses in the simulation.
 // Each course includes courseId and name only.
 // Returns { courses: [{ courseId, name }] }
 // Errors: INVALID_SIMULATION
-function courseRetrieveCourses(simulationId: number): Result<{ courses: CourseSummary[] }> {
+export function courseRetrieveCourses(
+  simulationId: number
+): Result<{ courses: Pick<Course, 'courseId' | 'name'>[] }> {
   const simulation = findSimulationOrError(simulationId);
   if (isError(simulation)) return simulation;
 
@@ -52,7 +23,9 @@ function courseRetrieveCourses(simulationId: number): Result<{ courses: CourseSu
 // Each exam includes examId, courseId, name and requiredStudyHours.
 // Returns { exams: [{ examId, courseId, name, requiredStudyHours }] }
 // Errors: INVALID_SIMULATION
-function courseRetrieveExams(simulationId: number): Result<{ exams: ExamSummary[] }> {
+export function courseRetrieveExams(
+  simulationId: number
+): Result<{ exams: Pick<Exam, 'examId' | 'courseId' | 'name' | 'requiredStudyHours'>[] }> {
   const simulation = findSimulationOrError(simulationId);
   if (isError(simulation)) return simulation;
 
@@ -70,10 +43,10 @@ function courseRetrieveExams(simulationId: number): Result<{ exams: ExamSummary[
 // Includes courseId, name, courseDetails and current courseStatus.
 // Returns { course: [{ courseId, name, courseDetails, courseStatus }] }
 // Errors: INVALID_SIMULATION, INVALID_COURSE
-function courseRetrieveCourseDetails(
+export function courseRetrieveCourseDetails(
   courseId: string,
   simulationId: number
-): Result<{ course: CourseDetails[] }> {
+): Result<{ course: Pick<Course, 'courseId' | 'name' | 'courseDetails' | 'courseStatus'>[] }> {
   const simulation = findSimulationOrError(simulationId);
   if (isError(simulation)) return simulation;
 
@@ -98,10 +71,10 @@ function courseRetrieveCourseDetails(
 // Includes examId, courseId, name and requiredStudyHours.
 // Returns { exam: [{ examId, courseId, name, requiredStudyHours }] }
 // Errors: INVALID_SIMULATION, INVALID_EXAM
-function courseRetrieveExamDetails(
+export function courseRetrieveExamDetails(
   simulationId: number,
   examId: string
-): Result<{ exam: ExamDetails[] }> {
+): Result<{ exam: Pick<Exam, 'examId' | 'courseId' | 'name' | 'requiredStudyHours'>[] }> {
   const simulation = findSimulationOrError(simulationId);
   if (isError(simulation)) return simulation;
 
@@ -126,11 +99,11 @@ function courseRetrieveExamDetails(
 // courseStatus reflects whether the course is IN_PROGRESS, PASSED, or FAILED.
 // Returns { course: [{ courseId, courseStatus }] }
 // Errors: INVALID_STUDENT_ID, INVALID_SIMULATION, INVALID_COURSE
-function courseCompletion(
+export function courseCompletion(
   courseId: string,
   studentId: string,
   simulationId: number
-): Result<{ course: CourseCompletionResult[] }> {
+): Result<{ course: Pick<Course, 'courseId' | 'courseStatus'>[] }> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
 
@@ -151,11 +124,3 @@ function courseCompletion(
     ]
   };
 }
-
-export {
-  courseRetrieveCourses,
-  courseRetrieveExams,
-  courseRetrieveCourseDetails,
-  courseRetrieveExamDetails,
-  courseCompletion,
-};
