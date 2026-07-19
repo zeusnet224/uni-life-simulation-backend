@@ -17,6 +17,14 @@ export interface Student {
   nameLast: string;
 }
 
+export interface SocialConnection {
+  connectionId: string;
+  simulationId: number;
+  name: string;
+  closeness: number; // 1-5
+  createdAt: number; // simulation timeElapsed at creation
+}
+
 export interface Course {
   courseId: string;
   name: string;
@@ -74,6 +82,7 @@ export interface AppData {
   users: Student[];
   simulations: Simulation[];
   sessions: Session[];
+  socialConnections: SocialConnection[];
 }
 
 export interface ErrorResponse {

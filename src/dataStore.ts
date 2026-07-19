@@ -9,7 +9,8 @@ function createInitialData(): AppData {
   return {
     users: [],
     simulations: [],
-    sessions: []
+    sessions: [],
+    socialConnections: [],
   };
 }
 
