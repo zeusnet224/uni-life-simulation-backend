@@ -7,9 +7,17 @@ import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
 import { authRegister, authLogin } from './auth.js';
-import { clearData } from './dataStore.js';
+import { clear } from './other.js';
 import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
 import { getStudentIdFromSession } from './auth.js';
+import {
+  simulationCreate,
+  simulationStatus,
+  simulationsList,
+  examGetStudyAction,
+  simulationGetLastAction,
+  simulationGetConcludingNotification,
+} from './simulation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,6 +37,33 @@ app.get('/', (req: Request, res: Response) => res.json({ message: 'Server is run
 
 const PORT: number = parseInt(process.env.PORT || config.port);
 const HOST: string = process.env.IP || '127.0.0.1';
+
+function getAuthenticatedStudentId(
+  req: Request,
+  res: Response
+): string | undefined {
+  const session = req.header('session');
+
+  if (!session) {
+    res.status(401).json({
+      error: 'UNAUTHORISED',
+      message: 'No session provided',
+    });
+    return undefined;
+  }
+
+  const studentId = getStudentIdFromSession(session);
+
+  if (!studentId) {
+    res.status(401).json({
+      error: 'UNAUTHORISED',
+      message: 'Invalid session',
+    });
+    return undefined;
+  }
+
+  return studentId;
+}
 
 // ====================================================================
 //  ================= WORK IS DONE BELOW THIS LINE ===================
@@ -69,9 +104,151 @@ app.post('/auth/login', (req: Request, res: Response) => {
 
 // clears the data
 app.delete('/clear', (req: Request, res: Response) => {
-  clearData();
-  res.json({});
+  const result = clear();
+  return res.status(200).json(result);
 });
+
+// Creates a simulation for the authenticated student.
+app.post('/simulations', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+
+  if (!studentId) {
+    return;
+  }
+
+  const { universeData } = req.body;
+
+  const result = simulationCreate(studentId, universeData);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+// Lists all simulations owned by the authenticated student.
+app.get('/simulations/:simulationId', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+
+  if (!studentId) {
+    return;
+  }
+
+  const simulationId = Number(req.params.simulationId);
+
+  const result = simulationStatus(studentId, simulationId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+// Returns the current status of a simulation.
+app.get('/simulations', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+
+  if (!studentId) {
+    return;
+  }
+
+  const result = simulationsList(studentId);
+
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
+// Returns the most recent action performed in a simulation.
+app.get(
+  '/simulations/:simulationId/last-action',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (!studentId) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+
+    const result = simulationGetLastAction(studentId, simulationId);
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Returns details of the most recent study action in a simulation.
+app.get(
+  '/simulations/:simulationId/last-study-action',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (!studentId) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+
+    const result = examGetStudyAction(studentId, simulationId);
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Returns the concluding notification for an ended simulation.
+app.get(
+  '/simulations/:simulationId/conclusion',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (!studentId) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+
+    const result = simulationGetConcludingNotification(
+      studentId,
+      simulationId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+
 
 // creates a social connection for a simulation
 app.post('/simulations/:simulationId/connections', (req: Request, res: Response) => {
