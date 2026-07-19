@@ -466,3 +466,74 @@ Monday
 ### Questions for Tutor
 - How much detail is expected in swagger.yaml for the designed routes at the Week 8 check-in stage,
   versus the final submission?
+
+---
+## Iter2-07-Sunday
+
+### Meeting Information
+
+- **Date/Time:**
+  19/07/2026 8:00-9:00pm
+- **Week:**
+  Week 8
+- **Attendees:**
+  - Katrina Chung
+  - Laya Madhan
+  - Rami Khaldoon
+  - Athena Lam
+
+- **Meeting Host:**
+  Laya Madhan
+
+- **Location/Platform:**
+  MS Teams
+
+### Agenda
+- Final run-through of everything required for the Week 8 design check-in
+- Confirm the iteration 1 HTTP routes in src/server.ts are working and demo-ready
+- Review the completed swagger.yaml designs for all 6 Student Wellbeing Advisor stories
+- Check the GitLab pipeline and coverage evidence is ready to show
+- Decide who presents what during the Week 8 lab
+
+### Discussion Points
+
+- **Topic 1: Demo readiness for iteration 1 HTTP routes**
+  - Ran through the converted iteration 1 functionality on the Express server as a group to make
+    sure every prescribed route works end to end before the lab.
+  - Confirmed `npm run tsc` passes on master and noted a couple of minor type issues to fix
+    before Monday so the TypeScript demo is clean.
+
+- **Topic 2: swagger.yaml design review**
+  - Went through each member's designed routes for their assigned story (Stories 1-6) and checked
+    every route has a summary, description, parameters, response schemas, and error cases.
+  - Gave feedback on consistency across designs (e.g. matching error codes like INVALID_SIMULATION,
+    rejecting ended simulations on mutating routes) and agreed on final tweaks before submission.
+  - Confirmed the designs trace back to our user stories and acceptance criteria since we need to
+    present that connection at the check-in.
+
+- **Topic 3: Pipeline and coverage evidence**
+  - Verified the GitLab pipeline is set up and passing on recent merge requests.
+  - Confirmed coverage has been run at least once and agreed on where the evidence is saved so
+    it can be shown quickly during the lab.
+
+- **Topic 4: Presentation plan for the check-in**
+  - Split the check-in into parts: iteration 1 route demo, TypeScript conversion and tsc, swagger.yaml
+    walkthrough by story, and pipeline/coverage evidence.
+  - Assigned each part to a group member, with each person presenting the swagger design for their
+    own story so they can answer questions about it.
+  - Agreed everyone pulls the latest master and tests locally the night before in case something
+    breaks last minute.
+
+### Action Items / Reminders
+- Fix the remaining minor type issues before the Week 8 lab and re-run tsc to confirm
+- Each member to finalise their swagger.yaml design tweaks from today's feedback via merge request
+- Each member to prepare a short walkthrough of their story's routes and how they map to the
+  acceptance criteria
+- Screenshot or link pipeline runs and coverage output so the evidence is ready to show
+- Everyone to pull latest master and do a full local run (lint, tsc, tests) the night before the lab
+- Close off completed Week 8 tasks on the GitLab issue board so it reflects actual progress
+
+### Questions for Tutor
+- For the swagger.yaml presentation, do you want us to walk through every designed route or just a
+  representative sample per story?
+- Is the pipeline/coverage evidence checked live during the lab or submitted somewhere as well?
