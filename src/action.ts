@@ -122,7 +122,7 @@ function checkExercisingConstraint(simulation: Simulation, duration: number): st
   return null;
 }
 
-interface ActionResult {
+export interface ActionResult {
   simulationId: number;
   currentActivity: string;
   duration: number;
