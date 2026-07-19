@@ -894,6 +894,23 @@ x-components:
           items:
             $ref: '#/x-components/group/AlternativeAction'
           description: At least one alternative action is always included
+    ExamReadiness:
+      type: object
+      properties:
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+          readiness:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+            description: Readiness based on readiness model
+          reasons:
+            type: array
+            items:
+              type: string
+            example:
+              - "Completed 75% of study hours required boosts readiness"
+              - "Not finalised: Connections boosts readiness"
+              - "Extracurricular activity boosts readiness"
     UniverseList:
       type: object
       properties:
@@ -1701,9 +1718,13 @@ paths:
       description: |
         Returns academic readiness for exams that advises on exam risk and plan action.
         The readiness model considers these factors:
-          1. Study progress
-          2. Required study amount for the exam
-          3. Wellbeing
+          1. Study progress: If the study progress is 75% of the study hours required
+          2. Wellbeing: TBD
+          3. Opportunity: If the student has joined an extracurricular or not
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/ExamId'
         - $ref: '#/x-components/header/Session'
       responses:
@@ -1711,7 +1732,13 @@ paths:
           description: Exam readiness information
           schema:
             $ref: '#/x-components/return/ExamReadiness'
-         400:
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
           description: |
             If any of the following are true:
             - **INVALID_SIMULATION**
