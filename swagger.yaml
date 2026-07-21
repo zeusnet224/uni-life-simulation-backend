@@ -1340,8 +1340,6 @@ paths:
           description: OK
           schema:
 
-            $ref: '#/x-components/return/SocietyList'
-
             $ref: '#/x-components/return/OpportunityList'
 
         401:
