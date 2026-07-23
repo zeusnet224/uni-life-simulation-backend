@@ -1356,241 +1356,241 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/societies/{societyId}/join:
-      post:
-        operationId: societyJoin
-        summary: Join a society
-        description: Joins the student to a society in the simulation. Rejects societies that do not exist or have already been joined.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/path/SocietyId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/SocietyJoinResult'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist or does not belong to the student
-            schema:
-              $ref: '#/x-components/return/Error'
-          400:
-            description: |
-              - **INVALID_SOCIETY**
-                - Society ID does not exist, or the student has already joined this society
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/societies/{societyId}/join:
+    post:
+      operationId: societyJoin
+      summary: Join a society
+      description: Joins the student to a society in the simulation. Rejects societies that do not exist or have already been joined.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/SocietyId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyJoinResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_SOCIETY**
+              - Society ID does not exist, or the student has already joined this society
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/societies/{societyId}/attend:
-      post:
-        operationId: societyAttend
-        summary: Attend a society event
-        description: |
-          Attends a joined society for a specified duration. Increases happiness and decreases energy per hour attended, and advances simulation time.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/path/SocietyId'
-          - $ref: '#/x-components/header/Session'
-          - $ref: '#/x-components/body/SocietyAttend'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/SocietyAttendResult'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist or does not belong to the student
-            schema:
-              $ref: '#/x-components/return/Error'
-          400:
-            description: |
-              If any of the following are true:
-              - **INVALID_SOCIETY**
-                - Society ID does not exist, or the student has not joined this society
-              - **INVALID_DURATION**
-                - Duration is not between 1 and 4 hours
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/societies/{societyId}/attend:
+    post:
+      operationId: societyAttend
+      summary: Attend a society event
+      description: |
+        Attends a joined society for a specified duration. Increases happiness and decreases energy per hour attended, and advances simulation time.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/SocietyId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SocietyAttend'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyAttendResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SOCIETY**
+              - Society ID does not exist, or the student has not joined this society
+            - **INVALID_DURATION**
+              - Duration is not between 1 and 4 hours
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/courses:
-      get:
-        operationId: courseRetrieveCourses
-        summary: List all courses
-        description: Returns a summary list of all courses in the simulation's universe.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/CourseSummaryList'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/courses:
+    get:
+      operationId: courseRetrieveCourses
+      summary: List all courses
+      description: Returns a summary list of all courses in the simulation's universe.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseSummaryList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/exams:
-      get:
-        operationId: courseRetrieveExams
-        summary: List all exams
-        description: Returns a summary list of all exams across all courses in the simulation's universe.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/ExamSummaryList'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/exams:
+    get:
+      operationId: courseRetrieveExams
+      summary: List all exams
+      description: Returns a summary list of all exams across all courses in the simulation's universe.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ExamSummaryList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/courses/{courseId}:
-      get:
-        operationId: courseRetrieveCourseDetails
-        summary: Get course details
-        description: Returns full details for a specific course, including its description and current status.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/path/CourseId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/CourseDetailsResult'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
-          400:
-            description: |
-              - **INVALID_COURSE**
-                - Course ID does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/courses/{courseId}:
+    get:
+      operationId: courseRetrieveCourseDetails
+      summary: Get course details
+      description: Returns full details for a specific course, including its description and current status.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/CourseId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseDetailsResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_COURSE**
+              - Course ID does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/exams/{examId}:
-      get:
-        operationId: courseRetrieveExamDetails
-        summary: Get exam details
-        description: Returns full details for a specific exam, including required study hours.
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/path/ExamId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/ExamDetailsResult'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
-          400:
-            description: |
-              - **INVALID_EXAM**
-                - Exam ID does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/exams/{examId}:
+    get:
+      operationId: courseRetrieveExamDetails
+      summary: Get exam details
+      description: Returns full details for a specific exam, including required study hours.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/ExamId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ExamDetailsResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_EXAM**
+              - Exam ID does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
 
-    /simulations/{simulationId}/courses/{courseId}/completion:
-      get:
-        operationId: courseCompletion
-        summary: Get course completion status
-        description: Returns the completion status of a specific course for the authenticated student (IN_PROGRESS, PASSED, or FAILED).
-        tags:
-          - "Iteration 2 (Designed)"
-        parameters:
-          - $ref: '#/x-components/path/SimulationId'
-          - $ref: '#/x-components/path/CourseId'
-          - $ref: '#/x-components/header/Session'
-        responses:
-          200:
-            description: OK
-            schema:
-              $ref: '#/x-components/return/CourseCompletionResult'
-          401:
-            description: |
-              - **UNAUTHORISED**
-                - Session is empty or invalid
-            schema:
-              $ref: '#/x-components/return/Error'
-          403:
-            description: |
-              - **INVALID_SIMULATION**
-                - Simulation does not exist or does not belong to the student
-            schema:
-              $ref: '#/x-components/return/Error'
-          400:
-            description: |
-              - **INVALID_COURSE**
-                - Course does not exist
-            schema:
-              $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/courses/{courseId}/completion:
+    get:
+      operationId: courseCompletion
+      summary: Get course completion status
+      description: Returns the completion status of a specific course for the authenticated student (IN_PROGRESS, PASSED, or FAILED).
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/CourseId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseCompletionResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_COURSE**
+              - Course does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
 
   /simulations/{simulationId}/opportunities/{opportunityId}/join:
     post:
