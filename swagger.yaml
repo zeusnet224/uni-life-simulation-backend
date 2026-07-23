@@ -943,18 +943,18 @@ x-components:
       properties:
         examId:
           $ref: '#/x-components/prim/ExamId'
-          readiness:
+        readiness:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+          description: Readiness based on readiness model
+        reasons:
+          type: array
+          items:
             type: string
-            enum: [HIGH, MEDIUM, LOW]
-            description: Readiness based on readiness model
-          reasons:
-            type: array
-            items:
-              type: string
-            example:
-              - "Completed 75% of study hours required boosts readiness"
-              - "Not finalised: Connections boosts readiness"
-              - "Extracurricular activity boosts readiness"
+          example:
+            - "Completed 75% of study hours required boosts readiness"
+            - "Not finalised: Connections boosts readiness"
+            - "Extracurricular activity boosts readiness"
     UniverseList:
       type: object
       properties:
