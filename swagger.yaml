@@ -1256,11 +1256,7 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
-  /simulations/{simulationId}/societies:
-      get:
-        operationId: societyList
-        summary: List societies not yet joined
-        description: Returns all societies in the simulation's universe that the student has not yet joined.
+
   /simulations/{simulationId}/opportunities:
     get:
       operationId: opportunitiesList
@@ -1297,13 +1293,41 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
+  /simulations/{simulationId}/societies:
+    get:
+      operationId: societyList
+      summary: List societies not yet joined
+      description: Returns all societies in the simulation's universe that the student has not yet joined.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
   /simulations/{simulationId}/societies/{societyId}/join:
     post:
       operationId: societyJoin
       summary: Join a society
       description: Joins the student to a society in the simulation. Rejects societies that do not exist or have already been joined.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/SocietyId'
@@ -1339,7 +1363,7 @@ paths:
       description: |
         Attends a joined society for a specified duration. Increases happiness and decreases energy per hour attended, and advances simulation time.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/SocietyId'
@@ -1378,7 +1402,7 @@ paths:
       summary: List all courses
       description: Returns a summary list of all courses in the simulation's universe.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/header/Session'
@@ -1406,7 +1430,7 @@ paths:
       summary: List all exams
       description: Returns a summary list of all exams across all courses in the simulation's universe.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/header/Session'
@@ -1434,7 +1458,7 @@ paths:
       summary: Get course details
       description: Returns full details for a specific course, including its description and current status.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/CourseId'
@@ -1469,7 +1493,7 @@ paths:
       summary: Get exam details
       description: Returns full details for a specific exam, including required study hours.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/ExamId'
@@ -1504,7 +1528,7 @@ paths:
       summary: Get course completion status
       description: Returns the completion status of a specific course for the authenticated student (IN_PROGRESS, PASSED, or FAILED).
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/path/CourseId'
