@@ -32,6 +32,9 @@ export function simulationCreate(
 
   const exams = Array.isArray(rawUniverse.exams) ? rawUniverse.exams : [];
   const societies = Array.isArray(rawUniverse.societies) ? rawUniverse.societies : [];
+  const opportunities = Array.isArray(rawUniverse.opportunities)
+    ? rawUniverse.opportunities
+    : [];
 
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
@@ -47,6 +50,7 @@ export function simulationCreate(
     timeElapsed: 0,
     actionHistory: [],
     joinedSocieties: [],
+    joinedOpportunities: [],
     universeData: {
       courses: rawUniverse.courses.map(course => ({
         ...course,
@@ -61,6 +65,7 @@ export function simulationCreate(
         examOutcome: exam.examOutcome || 'NIL',
       })),
       societies,
+      opportunities,
     },
   };
 
