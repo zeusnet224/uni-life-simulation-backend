@@ -26,6 +26,12 @@ import {
   courseCompletion,
 } from './course.js';
 import { simulationApplyAction } from './action.js';
+import {
+  opportunitiesList,
+  opportunityJoin,
+  opportunityLeave,
+  opportunityApplyEffects,
+} from './opportunity.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +46,126 @@ app.use(json());
 app.use(cors());
 // for logging errors (print to terminal)
 app.use(morgan('dev'));
+
+// Lists all opportunities and whether the student has joined them.
+app.get(
+  '/simulations/:simulationId/opportunities',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const result = opportunitiesList(studentId, simulationId);
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Joins an opportunity without immediately applying its effects.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/join',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityJoin(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Leaves an opportunity that the student previously joined.
+app.delete(
+  '/simulations/:simulationId/opportunities/:opportunityId/leave',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityLeave(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Applies the effects of a joined opportunity to a selected exam.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/apply',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+    const { examId } = req.body;
+
+    const result = opportunityApplyEffects(
+      studentId,
+      simulationId,
+      opportunityId,
+      examId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
 
 app.get('/', (req: Request, res: Response) => res.json({ message: 'Server is running' }));
 

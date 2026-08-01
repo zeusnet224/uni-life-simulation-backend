@@ -50,10 +50,20 @@ export interface Society {
   description: string;
 }
 
+export interface Opportunity {
+  opportunityId: string;
+  name: string;
+  description: string;
+  happinessBonus: number;
+  academicBonus: number;
+  weeklyHours: number;
+}
+
 export interface UniverseData {
   courses: Course[];
   exams: Exam[];
   societies: Society[];
+  opportunities: Opportunity[];
   clubs?: unknown[];
 }
 
@@ -75,6 +85,7 @@ export interface Simulation {
   timeElapsed: number;
   actionHistory: ActionHistoryEntry[];
   joinedSocieties: string[];
+  joinedOpportunities: string[];
   universeData: UniverseData;
 }
 
