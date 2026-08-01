@@ -99,7 +99,6 @@ function socialConnectionRemove(
   return {};
 }
 
-
 // Calculate a happiness boost from calling/spending time with a social connection
 // The bopost scales with closeness (1-5)
 // Returns {happinessBoost} on sucess
@@ -108,7 +107,7 @@ function socialConnectionSupportBoost(
   studentId: string,
   simulationId: number,
   connectionId: string
-): Result<{ happinessBoost: number}> {
+): Result<{ happinessBoost: number }> {
   const simulation = findOwnedSimulationOrError(studentId, simulationId);
   if (isError(simulation)) {
     return simulation;
@@ -120,7 +119,7 @@ function socialConnectionSupportBoost(
   );
 
   if (!connection) {
-    return { error: 'INVALID_CONNECTION', message: 'Connection ID does not exits for this simulation'};
+    return { error: 'INVALID_CONNECTION', message: 'Connection ID does not exits for this simulation' };
   }
 
   const happinessBoost = connection.closeness * 2;

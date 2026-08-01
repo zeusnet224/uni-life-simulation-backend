@@ -331,12 +331,12 @@ app.delete('/simulations/:simulationId/connections/:connectionId', (req: Request
 app.get('/simulations/:simulationId/connections/:connectionId/support', (req: Request, res: Response) => {
   const session = req.header('session');
   if (!session) {
-    return res.status(401).json({ error: 'UNAUTHORISED', message: ' No session provided'});
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' No session provided' });
   }
 
   const studentId = getStudentIdFromSession(session);
   if (!studentId) {
-    return res.status(401).json({ error: 'UNAUTHORISED', message: ' Invalid session'});
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' Invalid session' });
   }
 
   const simulationId = parseInt(req.params.simulationId as string);
