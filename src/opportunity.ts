@@ -178,8 +178,7 @@ export function opportunityLeave(
     return opportunity;
   }
 
-  const joinedIndex =
-    simulation.joinedOpportunities.indexOf(opportunityId);
+  const joinedIndex = simulation.joinedOpportunities.indexOf(opportunityId);
 
   if (joinedIndex === -1) {
     return {
