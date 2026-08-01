@@ -6,10 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
-import { authRegister, authLogin } from './auth.ts';
+import { authRegister, authLogin, getStudentIdFromSession } from './auth.ts';
 import { clear } from './other.ts';
 import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.ts';
-import { getStudentIdFromSession } from './auth.ts';
 import { societyList, societyJoin, societyAttend } from './society.ts';
 import {
   simulationCreate,

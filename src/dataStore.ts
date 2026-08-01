@@ -16,7 +16,7 @@ function createInitialData(): AppData {
   };
 }
 
-let data: AppData = createInitialData();
+const data: AppData = createInitialData();
 
 // Use getData() to access the data
 function getData(): AppData {
@@ -55,7 +55,6 @@ function loadExistingData(): void {
     saveData();
   }
 }
-
 
 function clearData(): void {
   const initialData = createInitialData();
