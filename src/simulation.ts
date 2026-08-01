@@ -1,6 +1,6 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions } from './action.js';
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { Simulation, Exam, UniverseData, Result, ErrorResponse } from './types.js';
 
 function isRawErrorObject(value: unknown): value is ErrorResponse {
@@ -65,6 +65,8 @@ export function simulationCreate(
   };
 
   data.simulations.push(newSimulation);
+
+  saveData();
 
   return { simulationId };
 }

@@ -16,7 +16,7 @@ function createInitialData(): AppData {
   };
 }
 
-const data: AppData = createInitialData();
+let data: AppData = createInitialData();
 
 // Use getData() to access the data
 function getData(): AppData {
