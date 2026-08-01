@@ -80,7 +80,9 @@ function socialConnectionRemove(
   const data = getData();
 
   const simulation = findOwnedSimulationOrError(studentId, simulationId);
-  if (isError(simulation)) return simulation;
+  if (isError(simulation)) {
+    return simulation;
+  }
 
   if (simulation.simulationStatus !== 'ACTIVE') {
     return { error: 'INVALID_SIMULATION', message: 'Simulation has already ended' };
@@ -97,4 +99,32 @@ function socialConnectionRemove(
   return {};
 }
 
-export { socialConnectionCreate, socialConnectionsList, socialConnectionRemove };
+
+// Calculate a happiness boost from calling/spending time with a social connection
+// The bopost scales with closeness (1-5)
+// Returns {happinessBoost} on sucess
+// Errors: INVALID_SIMULATIONS, INVALID_CONNECTION
+function socialConnectionSupportBoost(
+  studentId: string,
+  simulationId: number,
+  connectionId: string
+): Result<{ happinessBoost: number}> {
+  const simulation = findOwnedSimulationOrError(studentId, simulationId);
+  if (isError(simulation)) {
+    return simulation;
+  }
+
+  const data = getData();
+  const connection = data.socialConnections.find(
+    c => c.simulationId === simulationId && c.connectionId === connectionId
+  );
+
+  if (!connection) {
+    return { error: 'INVALID_CONNECTION', message: 'Connection ID does not exits for this simulation'};
+  }
+
+  const happinessBoost = connection.closeness * 2;
+  return { happinessBoost };
+}
+
+export { socialConnectionCreate, socialConnectionsList, socialConnectionRemove, socialConnectionSupportBoost };

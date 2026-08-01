@@ -8,7 +8,7 @@ import cors from 'cors';
 import process from 'process';
 import { authRegister, authLogin, getStudentIdFromSession } from './auth.js';
 import { clear } from './other.js';
-import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
+import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove, socialConnectionSupportBoost } from './socialConnections.js';
 import { societyList, societyJoin, societyAttend } from './society.js';
 import {
   simulationCreate,
@@ -327,6 +327,26 @@ app.delete('/simulations/:simulationId/connections/:connectionId', (req: Request
   return res.json(result);
 });
 
+// gets the happiness boost from social connection (used by wellbeing activities)
+app.get('/simulations/:simulationId/connections/:connectionId/support', (req: Request, res: Response) => {
+  const session = req.header('session');
+  if (!session) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' No session provided'});
+  }
+
+  const studentId = getStudentIdFromSession(session);
+  if (!studentId) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' Invalid session'});
+  }
+
+  const simulationId = parseInt(req.params.simulationId as string);
+  const connectionId = req.params.connectionId as string;
+  const result = socialConnectionSupportBoost(studentId, simulationId, connectionId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
 // lists societies not yet joined in a simulation
 app.get('/simulations/:simulationId/societies', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
