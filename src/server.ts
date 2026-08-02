@@ -26,6 +26,7 @@ import {
   courseCompletion,
 } from './course.js';
 import { simulationApplyAction } from './action.js';
+import { advisorPlan } from './advisor.js';
 import {
   opportunitiesList,
   opportunityJoin,
@@ -265,7 +266,6 @@ app.post('/simulations', (req: Request, res: Response) => {
 // Lists all simulations owned by the authenticated student.
 app.get('/simulations/:simulationId', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
-
   if (!studentId) {
     return;
   }
@@ -282,6 +282,23 @@ app.get('/simulations/:simulationId', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
+  return res.status(200).json(result);
+});
+
+// Returns a short-term plan comparing candidate next actions and current risks/blockers.
+app.get('/simulations/:simulationId/advisor/plan', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) {
+    return;
+  }
+  const simulationId = Number(req.params.simulationId);
+  const result = advisorPlan(studentId, simulationId);
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
   return res.status(200).json(result);
 });
 
