@@ -1,4 +1,4 @@
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { findOwnedSimulationOrError, isError } from './validators.js';
 import { Result, SocialConnection } from './types.js';
 import crypto from 'crypto';
@@ -42,6 +42,7 @@ function socialConnectionCreate(
   }
 
   const connectionId = crypto.randomUUID();
+
   data.socialConnections.push({
     connectionId,
     simulationId,
@@ -49,6 +50,8 @@ function socialConnectionCreate(
     closeness,
     createdAt: simulation.timeElapsed,
   });
+
+  saveData();
 
   return { connectionId };
 }

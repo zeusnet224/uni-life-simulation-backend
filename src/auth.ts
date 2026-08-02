@@ -1,4 +1,4 @@
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { Result } from './types.js';
 import crypto from 'crypto';
 
@@ -87,6 +87,9 @@ function authRegister(
   });
 
   const session = createSession(studentId);
+
+  saveData();
+
   return { session };
 }
 
@@ -105,6 +108,9 @@ function authLogin(studentId: string, password: string): Result<AuthResult> {
     return { error: 'INVALID_CREDENTIALS', message: 'Password is incorrect' };
   }
   const session = createSession(studentId);
+
+  saveData();
+
   return { session };
 }
 

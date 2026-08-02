@@ -1,4 +1,4 @@
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { Simulation, ActionType, Result } from './types.js';
 
 // Stat effects per hour for each action (from spec section 2.1.4)
@@ -228,6 +228,8 @@ function simulationApplyAction(
 
   // Check win/lose conditions immediately after the action
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   return {
     simulationId: simulation.simulationId,

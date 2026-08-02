@@ -1,6 +1,7 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions, clampStat } from './action.js';
 import { Simulation, Society, Result } from './types.js';
+import { saveData } from './dataStore.js';
 
 const societyAction = {
   ATTENDING: { happinessPerHour: 10, energyPerHour: -5 }
@@ -58,6 +59,7 @@ export function societyJoin(
   }
 
   simulation.joinedSocieties.push(societyId);
+  saveData();
 
   return {
     societyId: society.societyId,
@@ -95,6 +97,8 @@ export function societyAttend(
   simulation.currentActivity = 'ATTENDING_SOCIETY';
 
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   return {
     happiness: simulation.happiness,
