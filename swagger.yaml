@@ -1406,7 +1406,7 @@ paths:
       summary: List societies not yet joined
       description: Returns all societies in the simulation's universe that the student has not yet joined.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/header/Session'
