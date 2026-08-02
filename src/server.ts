@@ -27,6 +27,7 @@ import {
 } from './course.js';
 import { simulationApplyAction } from './action.js';
 import { advisorPlan } from './advisor.js';
+import { examReadiness } from './readiness.js';
 import {
   opportunitiesList,
   opportunityJoin,
