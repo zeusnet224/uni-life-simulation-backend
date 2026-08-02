@@ -27,6 +27,7 @@ import {
 } from './course.js';
 import { simulationApplyAction } from './action.js';
 import { advisorPlan } from './advisor.js';
+import { wellbeingActivityPerform } from './wellbeing.js';
 import {
   opportunitiesList,
   opportunityJoin,
@@ -297,6 +298,21 @@ app.get('/simulations/:simulationId/advisor/plan', (req: Request, res: Response)
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
     }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// Performs a wellbeing activity (HANG_OUT or ATTEND_CLUB_EVENT) for the given duration.
+app.post('/simulations/:simulationId/wellbeing', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) {
+    return;
+  }
+  const simulationId = Number(req.params.simulationId);
+  const { activity, duration, targetId } = req.body;
+  const result = wellbeingActivityPerform(studentId, simulationId, activity, duration, targetId);
+  if ('error' in result) {
     return res.status(400).json(result);
   }
   return res.status(200).json(result);
