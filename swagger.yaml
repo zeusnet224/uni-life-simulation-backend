@@ -989,20 +989,22 @@ x-components:
     ExamReadiness:
       type: object
       properties:
-        examId:
-          $ref: '#/x-components/prim/ExamId'
         readiness:
           type: string
           enum: [HIGH, MEDIUM, LOW]
           description: Readiness based on readiness model
+          example: MEDIUM
         reasons:
           type: array
           items:
             type: string
           example:
-            - "Completed 75% of study hours required boosts readiness"
-            - "Not finalised: Connections boosts readiness"
-            - "Extracurricular activity boosts readiness"
+            - "Has studied 75% of the study hours required. Keep up the good work!"
+            - "Has a support network with more than two close connections. Having study buddies always boosts readiness for the exam!"
+            - "Has not joined an extracurricular opportunity. A good work-life balance can boost readiness for the exam, so try joining an extracurricular!"
+      required:
+        - readiness
+        - reasons
     UniverseList:
       type: object
       properties:
@@ -1888,43 +1890,54 @@ paths:
           schema:
             $ref: '#/x-components/return/Error'
 
-  /simulations/{simulationId}/exams/{examId}/readiness:
-    get:
-      operationId: examReadiness
-      summary: Get information to understand exam readiness
-      description: |
-        Returns academic readiness for exams that advises on exam risk and plan action.
-        The readiness model considers these factors:
-          1. Study progress: If the study progress is 75% of the study hours required
-          2. Wellbeing: TBD
-          3. Opportunity: If the student has joined an extracurricular or not
-      tags:
-        - "Iteration 2 (Designed)"
-      parameters:
-        - $ref: '#/x-components/path/SimulationId'
-        - $ref: '#/x-components/path/ExamId'
-        - $ref: '#/x-components/header/Session'
-      responses:
-        200:
-          description: Exam readiness information
-          schema:
-            $ref: '#/x-components/return/ExamReadiness'
-        401:
-          description: |
-            - **UNAUTHORISED**
-              - Session is empty or invalid
-          schema:
-            $ref: '#/x-components/return/Error'
-        400:
-          description: |
-            If any of the following are true:
-            - **INVALID_SIMULATION**
-              - Simulation does not exist or does not belong to the student
-            - **INVALID_EXAM**
-              - Invalid examId does not exist in the simulation
-          schema:
-            $ref: '#/x-components/return/Error'
+/simulations/{simulationId}/exams/{examId}/readiness:
+  get:
+    operationId: examReadiness
+    summary: Get information to understand exam readiness
+    description: |
+      Returns academic readiness information for a specific exam.
 
+      The readiness model considers:
+        1. Study progress:
+           - Passes when study progress is at least 75% of required study hours.
+        2. Social Connections:
+           - Passes when the student has at least two close connections
+             with closeness greater than or equal to 3.
+        3. Opportunity:
+           - Passes when the student has joined an extracurricular opportunity.
+    tags:
+      - "Iteration 2 (Designed)"
+    parameters:
+      - $ref: '#/x-components/path/SimulationId'
+      - $ref: '#/x-components/path/ExamId'
+      - $ref: '#/x-components/header/Session'
+    responses:
+      200:
+        description: Exam readiness information
+        schema:
+          $ref: '#/x-components/return/ExamReadiness'
+
+      401:
+        description: |
+          - **UNAUTHORISED**
+            - Session header is missing or invalid.
+        schema:
+          $ref: '#/x-components/return/Error'
+
+      403:
+        description: |
+          - **INVALID_SIMULATION**
+            - Simulation does not exist.
+            - Simulation does not belong to the authenticated student.
+        schema:
+          $ref: '#/x-components/return/Error'
+
+      400:
+        description: |
+          - **INVALID_EXAM**
+            - ExamId does not exist in the simulation.
+        schema:
+          $ref: '#/x-components/return/Error'
 
   # ==================== STORY 1: PLAN A BALANCED WEEK ====================
   # Compares at least 3 possible next actions for the student's current simulation

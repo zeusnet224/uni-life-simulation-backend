@@ -5,6 +5,7 @@ export type CourseStatus = 'ACTIVE' | 'IN_PROGRESS' | 'PASSED' | 'FAILED';
 export type ExamStatus = 'NOT_ATTEMPTED' | 'ATTEMPTED';
 export type ExamOutcome = 'NIL' | 'PASS' | 'FAIL';
 export type ActionType = 'DOOM_SCROLLING' | 'STUDYING' | 'SLEEPING' | 'EATING' | 'EXERCISING';
+export type AcademicReadiness = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface Session {
   session: string;
@@ -87,6 +88,11 @@ export interface Simulation {
   joinedSocieties: string[];
   joinedOpportunities: string[];
   universeData: UniverseData;
+}
+
+export interface ExamReadiness {
+  readiness: AcademicReadiness;
+  reasons: string[];
 }
 
 export interface AppData {
