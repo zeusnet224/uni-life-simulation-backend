@@ -306,6 +306,21 @@ app.get('/simulations/:simulationId/advisor/plan', (req: Request, res: Response)
   return res.status(200).json(result);
 });
 
+// Returns academic readiness (HIGH/MEDIUM/LOW) for a specific exam, with reasons.
+app.get('/simulations/:simulationId/exams/:examId/readiness', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) {
+    return;
+  }
+  const simulationId = Number(req.params.simulationId);
+  const examId = req.params.examId as string;
+  const result = examReadiness(studentId, simulationId, examId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
 // Returns the current status of a simulation.
 app.get('/simulations', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
