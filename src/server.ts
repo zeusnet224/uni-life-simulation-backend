@@ -1,15 +1,15 @@
 import express, { json, Request, Response } from 'express';
-import { echo } from './newecho.js';
+import { echo } from './newecho.ts';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import process from 'process';
-import { authRegister, authLogin, getStudentIdFromSession } from './auth.js';
-import { clear } from './other.js';
-import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
-import { societyList, societyJoin, societyAttend } from './society.js';
+import { authRegister, authLogin, getStudentIdFromSession } from './auth.ts';
+import { clear } from './other.ts';
+import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.ts';
+import { societyList, societyJoin, societyAttend } from './society.ts';
 import {
   simulationCreate,
   simulationStatus,
@@ -17,7 +17,7 @@ import {
   examGetStudyAction,
   simulationGetLastAction,
   simulationGetConcludingNotification,
-} from './simulation.js';
+} from './simulation.ts';
 import {
   courseRetrieveCourses,
   courseRetrieveExams,
@@ -32,6 +32,7 @@ import {
   opportunityLeave,
   opportunityApplyEffects,
 } from './opportunity.js';
+import { loadExistingData, saveData } from './dataStore.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -264,35 +265,23 @@ app.post('/simulations', (req: Request, res: Response) => {
 // Lists all simulations owned by the authenticated student.
 app.get('/simulations/:simulationId', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
-  if (!studentId) {
-    return;
-  }
-  const simulationId = Number(req.params.simulationId);
-  const result = simulationStatus(studentId, simulationId);
-  if ('error' in result) {
-    if (result.error === 'INVALID_SIMULATION') {
-      return res.status(403).json(result);
-    }
-    return res.status(400).json(result);
-  }
-  return res.status(200).json(result);
-});
 
-// Applies an action (STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING) to a simulation.
-app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
-  const studentId = getAuthenticatedStudentId(req, res);
   if (!studentId) {
     return;
   }
+
   const simulationId = Number(req.params.simulationId);
-  const { action, duration, examId } = req.body;
-  const result = simulationApplyAction(studentId, simulationId, action, duration, examId);
+
+  const result = simulationStatus(studentId, simulationId);
+
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
     }
+
     return res.status(400).json(result);
   }
+
   return res.status(200).json(result);
 });
 
@@ -595,6 +584,32 @@ app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request
   return res.status(200).json(result);
 });
 
+app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const { action, duration, examId } = req.body;
+
+  const result = simulationApplyAction(
+    studentId,
+    simulationId,
+    action,
+    duration,
+    examId
+  );
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
@@ -616,6 +631,7 @@ app.use((req: Request, res: Response) => {
 });
 
 // start server
+loadExistingData();
 const server = app.listen(PORT, HOST, () => {
   // DO NOT CHANGE THIS LINE
   console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
@@ -623,6 +639,8 @@ const server = app.listen(PORT, HOST, () => {
 
 // For coverage, handle Ctrl+C gracefully
 process.on('SIGINT', () => {
+  saveData();
+
   server.close(() => {
     console.log('Shutting down server gracefully.');
     process.exit();

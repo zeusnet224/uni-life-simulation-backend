@@ -1,6 +1,7 @@
 import { checkWinLoseConditions } from './action.js';
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { Exam, Result } from './types.js';
+import { saveData } from './dataStore.js';
 
 // Returns the study progress for a specific exam in a simulation.
 // This is a read-only function — it does not change timeElapsed or currentActivity.
@@ -104,6 +105,8 @@ export function examAttemptRecord(
 
   // Check whether this exam result has caused the simulation to graduate or drop out
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   return {
     exam: [

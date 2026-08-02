@@ -1,6 +1,6 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions } from './action.js';
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { Simulation, Exam, UniverseData, Result, ErrorResponse } from './types.js';
 
 function isRawErrorObject(value: unknown): value is ErrorResponse {
@@ -71,6 +71,8 @@ export function simulationCreate(
 
   data.simulations.push(newSimulation);
 
+  saveData();
+
   return { simulationId };
 }
 
@@ -85,6 +87,8 @@ export function simulationStatus(
   if (isError(simulation)) return simulation;
 
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   return {
     simulationStatus: simulation.simulationStatus,
@@ -174,6 +178,8 @@ export function simulationGetConcludingNotification(
   if (isError(simulation)) return simulation;
 
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   if (simulation.simulationStatus === 'ACTIVE') {
     return { error: 'SIMULATION_NOT_ENDED', message: 'This simulation is still active' };
