@@ -537,6 +537,7 @@ Monday
 - For the swagger.yaml presentation, do you want us to walk through every designed route or just a
   representative sample per story?
 - Is the pipeline/coverage evidence checked live during the lab or submitted somewhere as well?
+
 ## Iter2-08-Thursday
 
 ### Meeting Information
@@ -598,3 +599,64 @@ Monday
   begins?
 - Is there a recommended order for implementing the 6 stories, or is it fine for each member to
   proceed independently?
+
+## Iter2-09-Sunday
+
+### Meeting Information
+
+- **Date/Time:**
+  2/08/2026 9:00-10:00pm
+- **Week:**
+  Week 9
+- **Attendees:**
+  - Katrina Chung
+  - Laya Madhan
+  - Rami Khaldoon
+  - Athena Lam
+  - Saniya D souza
+- **Meeting Host:**
+  Athena Lam
+- **Location/Platform:**
+  MS Teams
+
+### Agenda
+
+- Confirm every designed route is implemented, merged to master, and green in CI (lint, typecheck, tests)
+- Walk each story's black-box HTTP tests and coverage, and confirm swagger.yaml matches the implemented behaviour
+- Confirm the features.md traceability table is complete (HTTP tests + demo evidence for every story)
+- Identify remaining bugs/inconsistencies and assign the final fixes
+- Agree submission logistics: final MR reviews, coverage check, submission commit/tag, and demo dry-run
+
+### Discussion Points
+
+- **Topic 1: Implementation status per story**
+  - Confirmed Stories 2, 3, 4, and 6 are implemented, merged to master, and covered by passing
+    black-box HTTP tests, linting and tsc checks.
+  - Reviewed each designed route's request/response and error cases against swagger.yaml
+- **Topic 3: CI, coverage, and tooling**
+  - Confirmed the pipeline is green on master and resolved local environment issues (an npm
+    registry pointing at a private proxy that blocked installs, and a lint step failing because
+    dependencies were not installed) so every member can run npm ci / lint / tests.
+  - Confirmed coverage meets the required threshold after the latest merges.
+- **Topic 4: features.md and demo preparation**
+  - Confirmed the traceability rows are filled in for the implemented stories and fixed the table
+    formatting issues (a merged-row glitch and a duplicated Story 4 row).
+  - Walked the demo scenario for each acceptance criterion and checked each is reproducible through
+    the API from a fresh clone.
+- **Topic 5: Submission logistics**
+  - Agreed who performs the final MR reviews, who tags the submission commit, and if there is
+    enough time to record a video
+
+### Action Items / Reminders
+
+- Reconcile swagger.yaml with the implemented behaviour for the wellbeing and recommendation routes
+- Finalise the Story 1 and Story 5 backend logic and black-box HTTP tests
+- Remove the duplicate/incorrect traceability rows and fix the inconsistent swagger tags (societies)
+- Re-run coverage and confirm CI is green on master after all final merges
+- Do a full demo dry-run against a fresh clone to confirm every acceptance criterion is demonstrable
+- Confirm all MRs are merged with teammate review, then tag the submission commit
+
+### Questions for Tutor
+
+- What test-coverage percentage do you expect for iteration 2, and does it apply to the designed
+  routes only or the whole codebase?

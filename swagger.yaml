@@ -1408,7 +1408,7 @@ paths:
       summary: List societies not yet joined
       description: Returns all societies in the simulation's universe that the student has not yet joined.
       tags:
-        - "Iteration 2 (Designed)"
+        - "Iteration 1 (Group Designed)"
       parameters:
         - $ref: '#/x-components/path/SimulationId'
         - $ref: '#/x-components/header/Session'
@@ -1843,8 +1843,6 @@ paths:
           400:
             description: |
               If any of the following are true:
-              - **INVALID_SIMULATION**
-                - Simulation does not exist, does not belong to the student, or has already ended
               - **INVALID_ACTIVITY**
                 - Activity is not HANG_OUT or ATTEND_CLUB_EVENT
               - **INVALID_DURATION**
@@ -1854,6 +1852,10 @@ paths:
                 - For ATTEND_CLUB_EVENT, targetId is missing, does not refer to an existing club, or the club has not been joined
               - **INSUFFICIENT_ENERGY**
                 - For HANG_OUT, simulation has less than 10 energy
+          403:
+            description: |
+              - **INVALID_SIMULATION**
+                - Simulation does not exist, does not belong to the student, or has already ended
             schema:
               $ref: '#/x-components/return/Error'
 
@@ -1881,7 +1883,7 @@ paths:
               - Session is empty or invalid
           schema:
             $ref: '#/x-components/return/Error'
-        400:
+        403:
           description: |
             - **INVALID_SIMULATION**
               - Simulation does not exist, does not belong to the student, or has already ended
