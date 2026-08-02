@@ -33,6 +33,9 @@ import {
   opportunityLeave,
   opportunityApplyEffects,
 } from './opportunity.js';
+import { wellbeingActivityPerform } from './wellbeing.ts';
+import { simulationGetRecommendation } from './recommendation.ts';
+
 import { loadExistingData, saveData } from './dataStore.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -644,6 +647,31 @@ app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
     return res.status(400).json(result);
   }
 
+  return res.status(200).json(result);
+});
+
+app.post('/simulations/:simulationId/wellbeing', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+  const simulationId = Number(req.params.simulationId);
+  const { activity, targetId, duration } = req.body;
+  const result = wellbeingActivityPerform(studentId, simulationId, activity, targetId, duration);
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') return res.status(403).json(result);
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+app.get('/simulations/:simulationId/recommendation', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+  const simulationId = Number(req.params.simulationId);
+  const result = simulationGetRecommendation(studentId, simulationId);
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') return res.status(403).json(result);
+    return res.status(400).json(result);
+  }
   return res.status(200).json(result);
 });
 
