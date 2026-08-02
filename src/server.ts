@@ -24,8 +24,14 @@ import {
   courseRetrieveCourseDetails,
   courseRetrieveExamDetails,
   courseCompletion,
-} from './course.ts';
-import { simulationApplyAction } from './action.ts';
+} from './course.js';
+import { simulationApplyAction } from './action.js';
+import {
+  opportunitiesList,
+  opportunityJoin,
+  opportunityLeave,
+  opportunityApplyEffects,
+} from './opportunity.js';
 import { loadExistingData, saveData } from './dataStore.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,6 +47,126 @@ app.use(json());
 app.use(cors());
 // for logging errors (print to terminal)
 app.use(morgan('dev'));
+
+// Lists all opportunities and whether the student has joined them.
+app.get(
+  '/simulations/:simulationId/opportunities',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const result = opportunitiesList(studentId, simulationId);
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Joins an opportunity without immediately applying its effects.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/join',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityJoin(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Leaves an opportunity that the student previously joined.
+app.delete(
+  '/simulations/:simulationId/opportunities/:opportunityId/leave',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityLeave(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Applies the effects of a joined opportunity to a selected exam.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/apply',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+    const { examId } = req.body;
+
+    const result = opportunityApplyEffects(
+      studentId,
+      simulationId,
+      opportunityId,
+      examId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
 
 app.get('/', (req: Request, res: Response) => res.json({ message: 'Server is running' }));
 
@@ -339,7 +465,7 @@ app.post('/simulations/:simulationId/societies/:societyId/join', (req: Request, 
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const result = societyJoin(studentId, simulationId, societyId);
 
   if ('error' in result) {
@@ -357,7 +483,7 @@ app.post('/simulations/:simulationId/societies/:societyId/attend', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const societyId = req.params.societyId;
+  const societyId = req.params.societyId as string;
   const { duration } = req.body;
   const result = societyAttend(studentId, simulationId, societyId, duration);
 
@@ -410,7 +536,7 @@ app.get('/simulations/:simulationId/courses/:courseId', (req: Request, res: Resp
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseRetrieveCourseDetails(courseId, simulationId);
 
   if ('error' in result) {
@@ -428,7 +554,7 @@ app.get('/simulations/:simulationId/exams/:examId', (req: Request, res: Response
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const examId = req.params.examId;
+  const examId = req.params.examId as string;
   const result = courseRetrieveExamDetails(simulationId, examId);
 
   if ('error' in result) {
@@ -446,7 +572,7 @@ app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request
   if (!studentId) return;
 
   const simulationId = Number(req.params.simulationId);
-  const courseId = req.params.courseId;
+  const courseId = req.params.courseId as string;
   const result = courseCompletion(courseId, studentId, simulationId);
 
   if ('error' in result) {

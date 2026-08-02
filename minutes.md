@@ -537,3 +537,64 @@ Monday
 - For the swagger.yaml presentation, do you want us to walk through every designed route or just a
   representative sample per story?
 - Is the pipeline/coverage evidence checked live during the lab or submitted somewhere as well?
+## Iter2-08-Thursday
+
+### Meeting Information
+
+- **Date/Time:**
+  23/07/2026 4:00-5:00pm
+- **Week:**
+  Week 8
+- **Attendees:**
+  - Katrina Chung
+  - Laya Madhan
+  - Rami Khaldoon
+  - Athena Lam
+- **Meeting Host:**
+  Laya Madhan
+- **Location/Platform:**
+  MS Teams
+
+### Agenda
+
+- Review feedback received from the Week 8 design check-in
+- Go through each group member's assigned story and confirm what was covered vs. what still needs work
+- Split remaining iteration 2 tasks across the group ahead of the Week 10 final submission
+
+### Discussion Points
+
+- **Topic 1: Review of Week 8 check-in feedback**
+  - Went through the feedback from the check-in together as a group, covering the TypeScript
+    conversion, HTTP routes, swagger.yaml designs, and CI/coverage evidence.
+  - Noted specific comments from the tutor on our swagger.yaml designs (e.g. consistency of error
+    handling across routes, clarity of acceptance-criteria mapping) and confirmed which stories
+    need small revisions.
+- **Topic 2: Per-member story review**
+  - Each member gave a short update on their assigned story (Stories 1-6), what was completed for
+    the check-in (design only), and what implementation work remains before Week 10.
+  - Confirmed each story's swagger.yaml design is merged into master and its traceability row in
+    features.md is filled in.
+- **Topic 3: Splitting remaining iteration 2 tasks**
+  - Went through the full list of outstanding work needed before Week 10: implementing each
+    designed route's backend logic, writing black-box HTTP tests for each route, and finishing
+    the traceability table with test/demo evidence.
+  - Assigned implementation and testing work per story to the same member who designed it, since
+    they already understand the route contract and acceptance criteria.
+  - Agreed on rough milestones for check-ins between now and Week 10 so no one is left doing all
+    their implementation at the last minute.
+
+### Action Items / Reminders
+
+- Each member to implement the backend logic for their own designed story's routes
+- Each member to write black-box HTTP tests covering the acceptance criteria for their story
+- Update the traceability table in features.md with test and demo evidence as each story is completed
+- Address the specific tutor feedback points raised for each story's swagger.yaml design
+- Keep meeting minutes updated weekly as implementation progresses
+- Continue using merge requests with linked issues and teammate review for all iteration 2 work
+
+### Questions for Tutor
+
+- Are there any specific stories the tutor flagged as needing more design work before implementation
+  begins?
+- Is there a recommended order for implementing the 6 stories, or is it fine for each member to
+  proceed independently?
