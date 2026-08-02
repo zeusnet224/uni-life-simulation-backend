@@ -44,5 +44,39 @@
     { "examId": "E1-COMP6080", "courseId": "COMP6080", "name": "HTML CSS Test", "requiredStudyHours": 2 },
     { "examId": "E2-COMP6080", "courseId": "COMP6080", "name": "React Test", "requiredStudyHours": 3 },
     { "examId": "E3-COMP6080", "courseId": "COMP6080", "name": "Final Exam", "requiredStudyHours": 5 }
+  ],
+  "opportunities": [
+    {
+      "opportunityId": "peer-mentoring",
+      "name": "Peer Mentoring",
+      "description": "Attend weekly peer mentoring sessions.",
+      "happinessBonus": 5,
+      "academicBonus": 2,
+      "weeklyHours": 3
+    },
+    {
+      "opportunityId": "student-volunteering",
+      "name": "Student Volunteering",
+      "description": "Volunteer with a student community program.",
+      "happinessBonus": 8,
+      "academicBonus": 0,
+      "weeklyHours": 4
+    },
+    {
+      "opportunityId": "coding-workshop",
+      "name": "Coding Workshop",
+      "description": "Attend an extracurricular programming workshop.",
+      "happinessBonus": 2,
+      "academicBonus": 4,
+      "weeklyHours": 2
+    },
+    {
+      "opportunityId": "student-leadership",
+      "name": "Student Leadership",
+      "description": "Help organise student events and activities.",
+      "happinessBonus": 6,
+      "academicBonus": 1,
+      "weeklyHours": 5
+    }
   ]
 }
