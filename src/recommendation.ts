@@ -283,19 +283,19 @@ function availableAltReason(c: Candidate, sim: Simulation): string {
     case 'SLEEPING':
       return `Available — would restore energy (now ${e}), but that is not the current priority.`;
     case 'EATING':
-      return `Available — a small energy/happiness top-up that also unlocks exercising, but a minor gain right now.`;
+      return 'Available — a small energy/happiness top-up that also unlocks exercising, but a minor gain right now.';
     case 'DOOM_SCROLLING':
-      return `Available — a small pick-me-up, but low impact next to the recommended action.`;
+      return 'Available — a small pick-me-up, but low impact next to the recommended action.';
     case 'STUDYING':
       return `Available — exam '${t?.name}' is ${t?.readyPct}% ready and worth studying, but another action takes priority right now.`;
     case 'EXERCISING':
-      return `Available — a strong happiness boost since you have eaten recently, but another action ranks higher right now.`;
+      return 'Available — a strong happiness boost since you have eaten recently, but another action ranks higher right now.';
     case HANG_OUT:
       return `Available — time with ${t?.name} (closeness ${t?.closeness}/5) would boost happiness, but another action ranks higher right now.`;
     case ATTEND_CLUB_EVENT:
       return `Available — a ${t?.name} event would lift happiness and energy, but another action ranks higher right now.`;
     default:
-      return `Available, but not the priority right now.`;
+      return 'Available, but not the priority right now.';
   }
 }
 
