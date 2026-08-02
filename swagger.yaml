@@ -594,6 +594,17 @@ x-components:
           targetId:
             type: string
             description: Required when action is STUDYING, specifying which exam to study for. Groups may define additional targetId meanings for their own designed activities in their designed routes.
+    OpportunityApply:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - examId
+        properties:
+          examId:
+            $ref: '#/x-components/prim/ExamId'
     FriendAdd:
       in: body
       name: body
@@ -746,7 +757,44 @@ x-components:
           $ref: '#/x-components/prim/OpportunityId'
         isJoined:
           type: boolean
-          example: true
+          description: Whether the opportunity is currently joined
+        OpportunityEffects:
+      type: object
+      required:
+        - opportunityId
+        - examId
+        - happinessEffectApplied
+        - academicEffectApplied
+        - weeklyHoursApplied
+        - happiness
+        - studyHoursCompleted
+        - timeElapsed
+        - currentActivity
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        happinessEffectApplied:
+          type: integer
+          example: 5
+          description: Actual happiness change after applying the 0 to 100 limit
+        academicEffectApplied:
+          type: integer
+          example: 2
+          description: Actual number of study hours added to the selected exam
+        weeklyHoursApplied:
+          $ref: '#/x-components/prim/WeeklyHours'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        studyHoursCompleted:
+          type: integer
+          example: 12
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+        currentActivity:
+          type: string
+          example: OPPORTUNITY:peer-mentoring
     FriendList:
       type: object
       properties:
@@ -1635,6 +1683,10 @@ paths:
           description: Opportunity joined successfully
           schema:
             $ref: '#/x-components/return/OpportunityMembership'
+          examples:
+            application/json:
+              opportunityId: peer-mentoring
+              isJoined: true
         400:
           description: |
             If any of the following are true:
@@ -1679,6 +1731,10 @@ paths:
           description: Opportunity left successfully
           schema:
             $ref: '#/x-components/return/OpportunityMembership'
+          examples:
+            application/json:
+              opportunityId: peer-mentoring
+              isJoined: false
         400:
           description: |
             If any of the following are true:
@@ -1686,6 +1742,59 @@ paths:
               - Opportunity ID does not exist in the simulation's universe
             - **OPPORTUNITY_NOT_JOINED**
               - The opportunity has not been joined
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+  
+  /simulations/{simulationId}/opportunities/{opportunityId}/apply:
+    post:
+      operationId: opportunityApplyEffects
+      summary: Apply the effects of a joined opportunity
+      description: |
+        Applies the wellbeing, academic, and time effects of an opportunity
+        that the authenticated student has already joined.
+
+        The happiness bonus is applied to the simulation, the academic bonus
+        is added to the selected exam's completed study hours, and the
+        opportunity's weekly time cost is added to the simulation's elapsed
+        time.
+
+        Joining an opportunity alone does not apply these effects. This
+        separate route represents participating in the opportunity.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/OpportunityApply'
+      responses:
+        200:
+          description: Opportunity effects applied successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityEffects'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **OPPORTUNITY_NOT_JOINED**
+              - The student has not joined this opportunity
+            - **INVALID_EXAM**
+              - Exam ID does not exist in the simulation
             - **SIMULATION_ENDED**
               - The simulation has graduated or dropped out
           schema:

@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "studentId": "z5712149",
+      "password": "c17abb84cf9eccb946754188ebdae9f7e222099f4235780a7148e70cdd68dc07",
+      "nameFirst": "Saniya",
+      "nameLast": "Khan"
+    }
+  ],
+  "simulations": [],
+  "sessions": [
+    {
+      "session": "1cecb59b-0191-4336-8220-f1b1c41ea827",
+      "studentId": "z5712149"
+    }
+  ],
+  "socialConnections": []
+}

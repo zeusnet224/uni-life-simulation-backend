@@ -1,5 +1,5 @@
 import express, { json, Request, Response } from 'express';
-import { echo } from './newecho.js';
+import { echo } from './newecho.ts';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
@@ -8,7 +8,7 @@ import cors from 'cors';
 import process from 'process';
 import { authRegister, authLogin, getStudentIdFromSession } from './auth.js';
 import { clear } from './other.js';
-import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove } from './socialConnections.js';
+import { socialConnectionCreate, socialConnectionsList, socialConnectionRemove, socialConnectionSupportBoost } from './socialConnections.js';
 import { societyList, societyJoin, societyAttend } from './society.js';
 import {
   simulationCreate,
@@ -17,7 +17,7 @@ import {
   examGetStudyAction,
   simulationGetLastAction,
   simulationGetConcludingNotification,
-} from './simulation.js';
+} from './simulation.ts';
 import {
   courseRetrieveCourses,
   courseRetrieveExams,
@@ -27,6 +27,13 @@ import {
 } from './course.js';
 import { simulationApplyAction } from './action.js';
 import { advisorPlan } from './advisor.js';
+import {
+  opportunitiesList,
+  opportunityJoin,
+  opportunityLeave,
+  opportunityApplyEffects,
+} from './opportunity.js';
+import { loadExistingData, saveData } from './dataStore.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +48,126 @@ app.use(json());
 app.use(cors());
 // for logging errors (print to terminal)
 app.use(morgan('dev'));
+
+// Lists all opportunities and whether the student has joined them.
+app.get(
+  '/simulations/:simulationId/opportunities',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const result = opportunitiesList(studentId, simulationId);
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Joins an opportunity without immediately applying its effects.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/join',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityJoin(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Leaves an opportunity that the student previously joined.
+app.delete(
+  '/simulations/:simulationId/opportunities/:opportunityId/leave',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+
+    const result = opportunityLeave(
+      studentId,
+      simulationId,
+      opportunityId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
+
+// Applies the effects of a joined opportunity to a selected exam.
+app.post(
+  '/simulations/:simulationId/opportunities/:opportunityId/apply',
+  (req: Request, res: Response) => {
+    const studentId = getAuthenticatedStudentId(req, res);
+
+    if (studentId === undefined) {
+      return;
+    }
+
+    const simulationId = Number(req.params.simulationId);
+    const opportunityId = req.params.opportunityId as string;
+    const { examId } = req.body;
+
+    const result = opportunityApplyEffects(
+      studentId,
+      simulationId,
+      opportunityId,
+      examId
+    );
+
+    if ('error' in result) {
+      if (result.error === 'INVALID_SIMULATION') {
+        return res.status(403).json(result);
+      }
+
+      return res.status(400).json(result);
+    }
+
+    return res.status(200).json(result);
+  }
+);
 
 app.get('/', (req: Request, res: Response) => res.json({ message: 'Server is running' }));
 
@@ -142,14 +269,19 @@ app.get('/simulations/:simulationId', (req: Request, res: Response) => {
   if (!studentId) {
     return;
   }
+
   const simulationId = Number(req.params.simulationId);
+
   const result = simulationStatus(studentId, simulationId);
+
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
     }
+
     return res.status(400).json(result);
   }
+
   return res.status(200).json(result);
 });
 
@@ -161,24 +293,6 @@ app.get('/simulations/:simulationId/advisor/plan', (req: Request, res: Response)
   }
   const simulationId = Number(req.params.simulationId);
   const result = advisorPlan(studentId, simulationId);
-  if ('error' in result) {
-    if (result.error === 'INVALID_SIMULATION') {
-      return res.status(403).json(result);
-    }
-    return res.status(400).json(result);
-  }
-  return res.status(200).json(result);
-});
-
-// Applies an action (STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING) to a simulation.
-app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
-  const studentId = getAuthenticatedStudentId(req, res);
-  if (!studentId) {
-    return;
-  }
-  const simulationId = Number(req.params.simulationId);
-  const { action, duration, examId } = req.body;
-  const result = simulationApplyAction(studentId, simulationId, action, duration, examId);
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
@@ -345,6 +459,26 @@ app.delete('/simulations/:simulationId/connections/:connectionId', (req: Request
   return res.json(result);
 });
 
+// gets the happiness boost from social connection (used by wellbeing activities)
+app.get('/simulations/:simulationId/connections/:connectionId/support', (req: Request, res: Response) => {
+  const session = req.header('session');
+  if (!session) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' No session provided' });
+  }
+
+  const studentId = getStudentIdFromSession(session);
+  if (!studentId) {
+    return res.status(401).json({ error: 'UNAUTHORISED', message: ' Invalid session' });
+  }
+
+  const simulationId = parseInt(req.params.simulationId as string);
+  const connectionId = req.params.connectionId as string;
+  const result = socialConnectionSupportBoost(studentId, simulationId, connectionId);
+  if ('error' in result) {
+    return res.status(400).json(result);
+  }
+  return res.json(result);
+});
 // lists societies not yet joined in a simulation
 app.get('/simulations/:simulationId/societies', (req: Request, res: Response) => {
   const studentId = getAuthenticatedStudentId(req, res);
@@ -487,6 +621,32 @@ app.get('/simulations/:simulationId/courses/:courseId/completion', (req: Request
   return res.status(200).json(result);
 });
 
+app.post('/simulations/:simulationId/action', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const { action, duration, examId } = req.body;
+
+  const result = simulationApplyAction(
+    studentId,
+    simulationId,
+    action,
+    duration,
+    examId
+  );
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+
+    return res.status(400).json(result);
+  }
+
+  return res.status(200).json(result);
+});
+
 // ====================================================================
 //  ================= WORK IS DONE ABOVE THIS LINE ===================
 // ====================================================================
@@ -508,6 +668,7 @@ app.use((req: Request, res: Response) => {
 });
 
 // start server
+loadExistingData();
 const server = app.listen(PORT, HOST, () => {
   // DO NOT CHANGE THIS LINE
   console.log(`⚡️ Server started on port ${PORT} at ${HOST}`);
@@ -515,6 +676,8 @@ const server = app.listen(PORT, HOST, () => {
 
 // For coverage, handle Ctrl+C gracefully
 process.on('SIGINT', () => {
+  saveData();
+
   server.close(() => {
     console.log('Shutting down server gracefully.');
     process.exit();

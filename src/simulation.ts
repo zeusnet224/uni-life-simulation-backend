@@ -1,6 +1,6 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { checkWinLoseConditions } from './action.js';
-import { getData } from './dataStore.js';
+import { getData, saveData } from './dataStore.js';
 import { Simulation, Exam, UniverseData, Result, ErrorResponse } from './types.js';
 
 function isRawErrorObject(value: unknown): value is ErrorResponse {
@@ -32,6 +32,9 @@ export function simulationCreate(
 
   const exams = Array.isArray(rawUniverse.exams) ? rawUniverse.exams : [];
   const societies = Array.isArray(rawUniverse.societies) ? rawUniverse.societies : [];
+  const opportunities = Array.isArray(rawUniverse.opportunities)
+    ? rawUniverse.opportunities
+    : [];
 
   const simulationId = data.simulations.reduce((maxId, simulation) => {
     return Math.max(maxId, simulation.simulationId);
@@ -47,6 +50,7 @@ export function simulationCreate(
     timeElapsed: 0,
     actionHistory: [],
     joinedSocieties: [],
+    joinedOpportunities: [],
     universeData: {
       courses: rawUniverse.courses.map(course => ({
         ...course,
@@ -61,10 +65,13 @@ export function simulationCreate(
         examOutcome: exam.examOutcome || 'NIL',
       })),
       societies,
+      opportunities,
     },
   };
 
   data.simulations.push(newSimulation);
+
+  saveData();
 
   return { simulationId };
 }
@@ -80,6 +87,8 @@ export function simulationStatus(
   if (isError(simulation)) return simulation;
 
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   return {
     simulationStatus: simulation.simulationStatus,
@@ -169,6 +178,8 @@ export function simulationGetConcludingNotification(
   if (isError(simulation)) return simulation;
 
   checkWinLoseConditions(simulation);
+
+  saveData();
 
   if (simulation.simulationStatus === 'ACTIVE') {
     return { error: 'SIMULATION_NOT_ENDED', message: 'This simulation is still active' };
