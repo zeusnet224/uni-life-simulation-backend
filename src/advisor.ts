@@ -1,6 +1,8 @@
 import { findStudentOrError, findOwnedSimulationOrError, isError } from './validators.js';
 import { Simulation, ActionType, Result } from './types.js';
 
+// A candidate next action: whether it's currently allowed, its expected
+// stat impact, and a short reason.
 export interface PlanOption {
   action: ActionType;
   allowed: boolean;
@@ -8,16 +10,20 @@ export interface PlanOption {
   reason: string;
 }
 
+// A current risk or blocker affecting the simulation.
 export interface PlanBlocker {
   type: string;
   description: string;
 }
 
+// Story 1 response: a comparison of candidate actions plus current
+// risks/blockers (always at least one).
 export interface AdvisorPlanResult {
   options: PlanOption[];
   blockers: PlanBlocker[];
 }
 
+// Stat effects per hour per action, mirrored from action.ts.
 const ACTION_EFFECTS: Record<ActionType, { energyPerHour: number; happinessPerHour: number }> = {
   DOOM_SCROLLING: { energyPerHour: 3, happinessPerHour: 2 },
   STUDYING: { energyPerHour: -15, happinessPerHour: -5 },
@@ -26,6 +32,7 @@ const ACTION_EFFECTS: Record<ActionType, { energyPerHour: number; happinessPerHo
   EXERCISING: { energyPerHour: -10, happinessPerHour: 6 },
 };
 
+// Dry-run: would 1 hour of STUDYING now break the 3-consecutive-hour limit?
 function isStudyingAllowed(simulation: Simulation): boolean {
   const history = simulation.actionHistory;
   let recentStudyHours = 0;
@@ -39,6 +46,7 @@ function isStudyingAllowed(simulation: Simulation): boolean {
   return recentStudyHours + 1 <= 3;
 }
 
+// Dry-run: would 1 hour of EXERCISING now break the eating-window or cooldown constraint?
 function isExercisingAllowed(simulation: Simulation): boolean {
   const history = simulation.actionHistory;
   const currentTime = simulation.timeElapsed;
@@ -65,6 +73,7 @@ function isExercisingAllowed(simulation: Simulation): boolean {
   return hasEatenRecently;
 }
 
+// Builds one PlanOption: allowed status, stat impact, and a reason based on current state.
 function describeOption(simulation: Simulation, action: ActionType): PlanOption {
   const effects = ACTION_EFFECTS[action];
   let allowed = true;
@@ -99,6 +108,8 @@ function describeOption(simulation: Simulation, action: ActionType): PlanOption 
   return { action, allowed, impact, reason };
 }
 
+// Identifies current risks/blockers from live simulation state.
+// Always returns at least one entry (falls back to "NONE" if nothing is at risk).
 function computeBlockers(simulation: Simulation): PlanBlocker[] {
   const blockers: PlanBlocker[] = [];
 
@@ -142,6 +153,9 @@ function computeBlockers(simulation: Simulation): PlanBlocker[] {
   return blockers;
 }
 
+// Story 1: returns a plan comparing 5 candidate actions and current risks/blockers.
+// Parameters: studentId, simulationId
+// Errors: INVALID_STUDENT_ID, INVALID_SIMULATION
 export function advisorPlan(studentId: string, simulationId: number): Result<AdvisorPlanResult> {
   const student = findStudentOrError(studentId);
   if (isError(student)) return student;
