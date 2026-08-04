@@ -38,6 +38,7 @@ import { simulationGetRecommendation } from './recommendation.ts';
 
 import { loadExistingData, saveData } from './dataStore.ts';
 import { calcAcademicReadiness } from './readiness.ts';
+import { examAttemptRecord } from './exam.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -616,6 +617,22 @@ app.get('/simulations/:simulationId/exams/:examId/readiness', (req: Request, res
   const examId = req.params.examId as string;
   const result = calcAcademicReadiness(studentId, simulationId, examId);
 
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// Records an attempt at an exam, applying the energy cost and determining pass/fail.
+app.post('/simulations/:simulationId/exams/:examId/attempt', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+  const simulationId = Number(req.params.simulationId);
+  const examId = req.params.examId as string;
+  const result = examAttemptRecord(examId, simulationId, studentId);
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
       return res.status(403).json(result);
