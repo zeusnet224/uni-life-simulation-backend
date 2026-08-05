@@ -42,3 +42,7 @@ node_modules/
 # Build output
 dist/
 build/
+
+#files for week 10 demo
+demo.env
+demo-simulation.json
