@@ -1,0 +1,1989 @@
+swagger: "2.0"
+info:
+  title: Unigotchi API
+  description: |
+    API description for Unigotchi - a university life simulation game.
+    This file contains the minimal prescribed routes for iteration 2. Groups must add their own designed routes based on the Student Wellbeing Advisor feature requirements, user stories, and acceptance criteria in the project specification.
+    All error strings are required to be clear descriptive messages. The descriptive message won't change the marks you receive when being automarked as long as you make an attempt for each one to be custom, but they will improve usability.
+    See the schema tab for greater explanations on each attribute of an object. Some schemas are reusable design support for group-designed routes and do not imply that the corresponding routes are prescribed.
+  version: 1.0.0
+  license:
+    name: UNSW course specification
+    url: https://www.unsw.edu.au
+
+schemes:
+  - http
+
+tags:
+  - name: "Iteration 2 (Prescribed Core)"
+    description: Required iteration 2 routes with prescribed request and response formats
+  - name: "Iteration 2 (Designed)"
+    description: Routes designed by your group from your user stories and acceptance criteria
+
+securityDefinitions:
+  SessionAuth:
+    type: apiKey
+    in: header
+    name: session
+
+security:
+  - SessionAuth: []
+
+x-components:
+  prim:
+    ErrorMessage:
+      type: string
+      example: "Descriptive error message here"
+    ErrorType:
+      type: string
+      example: "ERROR_TYPE"
+    StudentId:
+      type: string
+      example: z5555555
+      description: Student ID in the format of a lowercase 'z' followed by exactly 7 digits
+    Password:
+      type: string
+      example: alexchen123
+    NameFirst:
+      type: string
+      example: Alex
+    NameLast:
+      type: string
+      example: Chen
+    Session:
+      type: string
+      example: "23748"
+    SimulationId:
+      type: integer
+      example: 5546
+    FriendId:
+      type: integer
+      example: 1234
+    ConnectionId:
+      type: string
+      example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+      description: Randomly generated unique identifier for a social connection
+    ConnectionName:
+      type: string
+      example: Jamie Park
+      description: Display name of the social connection (2-50 characters)
+    Closeness:
+      type: integer
+      example: 3
+      minimum: 1
+      maximum: 5
+      description: Closeness/support value from 1 (LOW) to 5 (HIGH). Affects wellbeing activities that depend on social support.
+    ClubId:
+      type: string
+      example: csesoc
+      description: 2-20 characters, alphanumeric and underscores only
+    SocietyId:
+      type: string
+      example: csesoc
+      description: Unique identifier for a society within a universe
+    CourseId:
+      type: string
+      example: COMP1531
+      description: Must be 4 uppercase letters (A-Z) followed by 4 digits (e.g., COMP1531, MATH1081)
+    ExamId:
+      type: string
+      example: E1-COMP1531
+      description: 2-20 characters
+    Activity:
+      type: string
+      enum: [DOOM_SCROLLING, STUDYING, SLEEPING, EATING, EXERCISING]
+      description: Prescribed core activities. Groups may define additional activity values for their own designed routes if needed.
+    SimulationStatus:
+      type: string
+      enum: [ACTIVE, GRADUATED, DROPPED_OUT]
+    Timestamp:
+      type: integer
+      example: 1683019484
+      description: In seconds. You can find more information here https://en.wikipedia.org/wiki/Unix_time
+    Energy:
+      type: integer
+      example: 75
+      description: Energy level from 0-100 points (not percentage)
+    Happiness:
+      type: integer
+      example: 60
+      description: Happiness level from 0-100 points (not percentage)
+    TimeElapsed:
+      type: integer
+      example: 24
+      description: Time elapsed in hours since simulation started
+    UniverseName:
+      type: string
+      example: unsw2025
+      description: Name of a universe (matches a file in the universes folder without the .json suffix). Can only contain alphanumeric characters, dashes, and underscores.
+    Duration:
+      type: integer
+      minimum: 1
+      example: 2
+      description: Duration in hours (whole hours only). Minimum 1 hour required for all actions.
+    StudyHours:
+      type: integer
+      example: 20
+      description: Number of study hours required for an exam
+    WeeklyHours:
+      type: integer
+      example: 5
+      description: Hours per week commitment
+    HappinessBonus:
+      type: integer
+      example: 5
+      description: Reusable happiness or wellbeing effect value for group-designed features. This is design-support data, not a prescribed automark formula unless your own documented route design says how it is applied.
+    AcademicBonus:
+      type: integer
+      example: 1
+      description: Reusable academic effect value for group-designed opportunities, clubs, societies, events, or recommendation/readiness models. This is design-support data, not a prescribed exam formula.
+    OpportunityId:
+      type: string
+      example: peer-mentoring
+      description: Unique identifier for an extracurricular opportunity within a universe
+    WellbeingActivity:
+      type: string
+      enum: [HANG_OUT, ATTEND_CLUB_EVENT]
+      description: |
+        Group-designed wellbeing activities:
+        - HANG_OUT: spend time with an existing social connection. Happiness gain scales with the connection's closeness. Costs energy and time.
+        - ATTEND_CLUB_EVENT: attend an event for a club the simulation has joined. Restores happiness based on the club's happinessBonus and a small amount of energy. Costs time.
+
+  group:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Alex Chen
+          description: Constructed as nameFirst + ' ' + nameLast
+        studentId:
+          type: string
+          example: z5555555
+        numSimulations:
+          type: integer
+          example: 5
+          description: Lifetime count of simulations successfully started by this student. This increments on successful simulation creation and is reset only when all application state is cleared.
+        numGraduations:
+          type: integer
+          example: 2
+          description: Lifetime count of this student's simulations that have transitioned to GRADUATED. Count each simulation at most once, and reset only when all application state is cleared.
+
+    SimulationSummary:
+      type: object
+      properties:
+        simulationId:
+          $ref: '#/x-components/prim/SimulationId'
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+
+    SimulationFull:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        energy:
+          $ref: '#/x-components/prim/Energy'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+
+    Friend:
+      type: object
+      properties:
+        friendId:
+          $ref: '#/x-components/prim/FriendId'
+        name:
+          type: string
+          example: Jordan Lee
+        happinessBonus:
+          type: integer
+          example: 3
+          description: Happiness or wellbeing bonus used by group-designed social features. Groups should document how this value affects activities, plans, readiness, or recommendations.
+        addedAt:
+          $ref: '#/x-components/prim/Timestamp'
+    SocialConnection:
+      type: object
+      properties:
+        connectionId:
+          $ref: '#/x-components/prim/ConnectionId'
+        name:
+          $ref: '#/x-components/prim/ConnectionName'
+        closeness:
+          $ref: '#/x-components/prim/Closeness'
+        createdAt:
+          $ref: '#/x-components/prim/TimeElapsed'
+          description: Simulation timeElapsed value at the time the connection was created
+    Club:
+      type: object
+      properties:
+        clubId:
+          $ref: '#/x-components/prim/ClubId'
+        name:
+          type: string
+          example: CSESoc
+          description: Club name (2-40 characters)
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        isJoined:
+          type: boolean
+          example: false
+    PlanOption:
+      type: object
+      properties:
+        action:
+          $ref: '#/x-components/prim/Activity'
+        allowed:
+          type: boolean
+          example: true
+          description: Whether this action could currently be performed without violating a constraint (e.g. studying limits, exercise cooldown, ended simulation)
+        impact:
+          type: string
+          example: "Increases energy by 15, delays exam study progress"
+          description: A short human-readable summary of at least one expected benefit, cost, or risk of choosing this action now
+        reason:
+          type: string
+          example: "Energy is low (20/100); resting now reduces dropout risk before your next exam"
+          description: Short explanation of why this option is being surfaced given current simulation state
+
+    PlanBlocker:
+      type: object
+      properties:
+        type:
+          type: string
+          example: LOW_ENERGY
+          description: Machine-readable category of the current risk or blocker (e.g. LOW_ENERGY, LOW_HAPPINESS, UPCOMING_EXAM, NO_SOCIAL_SUPPORT, NO_OPPORTUNITIES, LOW_READINESS)
+        description:
+          type: string
+          example: "Energy is critically low (10/100) — dropout risk if it reaches 0"
+
+    AdvisorPlan:
+      type: object
+      properties:
+        options:
+          type: array
+          minItems: 3
+          items:
+            $ref: '#/x-components/group/PlanOption'
+          description: At least 3 comparable next actions the student could take, derived from current simulation state
+        blockers:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/x-components/group/PlanBlocker'
+          description: At least one current risk or blocker (e.g. low energy, low happiness, insufficient sleep, upcoming exams, no social support, no joined opportunities, low exam readiness)
+
+    Society:
+          type: object
+          properties:
+            societyId:
+              $ref: '#/x-components/prim/SocietyId'
+            name:
+              type: string
+              example: CSESoc
+              description: Society name
+            description:
+              type: string
+              example: The computer science and engineering society
+
+    Course:
+      type: object
+      properties:
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Software Engineering Fundamentals
+          description: Course name (2-40 characters)
+        courseStatus:
+          type: string
+          enum: [IN_PROGRESS, PASSED, FAILED]
+          example: IN_PROGRESS
+          description: |
+            Course status based on exam outcomes:
+            - IN_PROGRESS: Initial status, exams being attempted
+            - PASSED: At least 50% of exams (2 out of 3) passed AND all exams in the course have been attempted
+            - FAILED: 2 or more exams failed (cannot reach 50% threshold), triggers dropout
+            Note: A student must attempt all 3 exams in a course before it can be marked as PASSED. Exam retakes are not allowed.
+
+    ExamSummary:
+      type: object
+      properties:
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Midterm Exam
+          description: Exam name (2-40 characters)
+      description: Summary exam information used for listings.
+
+    Exam:
+      type: object
+      properties:
+        courseId:
+          $ref: '#/x-components/prim/CourseId'
+        name:
+          type: string
+          example: Midterm Exam
+          description: Exam name (2-40 characters)
+        requiredStudyHours:
+          $ref: '#/x-components/prim/StudyHours'
+        studyHoursCompleted:
+          type: integer
+          example: 30
+        passChance:
+          type: integer
+          example: 0
+          description: Optional academic progress or readiness-related value for groups that reuse this schema in designed features. Prescribed exam evaluation is deterministic and remains governed by the README exam rules.
+        isPassed:
+          type: boolean
+          example: false
+          description: Whether the exam has been passed after it has been attempted and evaluated. Before an exam is attempted, implementations should expose this field consistently with their documented response shape, but it must not imply that an unattempted exam has been evaluated.
+      description: All exams are weighted equally. Each course has 3 exams, and at least 2 must be passed (50% pass rate) to pass the course. If 2 or more exams are failed in a course, that course fails and triggers dropout.
+    OpportunityDefinition:
+      type: object
+      required:
+        - opportunityId
+        - name
+        - description
+        - happinessBonus
+        - academicBonus
+        - weeklyHours
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        name:
+          type: string
+          example: Peer Mentoring Program
+        description:
+          type: string
+          example: Attend weekly mentoring sessions with another student.
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        weeklyHours:
+          $ref: '#/x-components/prim/WeeklyHours'
+
+    OpportunityView:
+      type: object
+      required:
+        - opportunityId
+        - name
+        - description
+        - happinessBonus
+        - academicBonus
+        - weeklyHours
+        - isJoined
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        name:
+          type: string
+          example: Peer Mentoring Program
+        description:
+          type: string
+          example: Attend weekly mentoring sessions with another student.
+        happinessBonus:
+          $ref: '#/x-components/prim/HappinessBonus'
+        academicBonus:
+          $ref: '#/x-components/prim/AcademicBonus'
+        weeklyHours:
+          $ref: '#/x-components/prim/WeeklyHours'
+        isJoined:
+          type: boolean
+          example: false
+          description: Whether the authenticated student has joined this opportunity in the simulation
+    RecommendedAction:
+          type: object
+          properties:
+            action:
+              type: string
+              example: SLEEPING
+              description: A prescribed Activity or group-designed WellbeingActivity value. Never an action that is currently invalid for the simulation state.
+            reason:
+              type: string
+              example: Energy is below 20, so sleeping is required before other actions are possible.
+              description: Human-readable reason for the recommendation
+            targetId:
+              type: string
+              example: E1-COMP1531
+              description: Optional target for the action (e.g. exam to study for, connectionId to hang out with, clubId for an event)
+
+    AlternativeAction:
+      type: object
+      properties:
+        action:
+          type: string
+          example: HANG_OUT
+        reason:
+          type: string
+          example: Would restore happiness using a HIGH closeness connection.
+        isAvailable:
+          type: boolean
+          example: false
+          description: Whether the action is currently valid. If false, reason must explain why it is unavailable.
+        targetId:
+          type: string
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+
+  path:
+    StudentIdPath:
+      in: path
+      name: studentId
+      required: true
+      type: string
+    SimulationId:
+      in: path
+      name: simulationId
+      required: true
+      type: integer
+    FriendId:
+      in: path
+      name: friendId
+      required: true
+      type: integer
+    ConnectionId:
+      in: path
+      name: connectionId
+      required: true
+      type: string
+    ClubId:
+      in: path
+      name: clubId
+      required: true
+      type: string
+    SocietyId:
+      in: path
+      name: societyId
+      required: true
+      type: string
+    CourseId:
+      in: path
+      name: courseId
+      required: true
+      type: string
+    ExamId:
+      in: path
+      name: examId
+      required: true
+      type: string
+    UniverseName:
+      in: path
+      name: universeName
+      required: true
+      type: string
+    OpportunityId:
+      in: path
+      name: opportunityId
+      required: true
+      type: string
+
+  header:
+    Session:
+      in: header
+      name: session
+      required: true
+      type: string
+
+  body:
+    Register:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          password:
+            $ref: '#/x-components/prim/Password'
+          nameFirst:
+            $ref: '#/x-components/prim/NameFirst'
+          nameLast:
+            $ref: '#/x-components/prim/NameLast'
+    Login:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          password:
+            $ref: '#/x-components/prim/Password'
+    UserDetailsUpdate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          studentId:
+            $ref: '#/x-components/prim/StudentId'
+          nameFirst:
+            $ref: '#/x-components/prim/NameFirst'
+          nameLast:
+            $ref: '#/x-components/prim/NameLast'
+    UserPasswordUpdate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          oldPassword:
+            $ref: '#/x-components/prim/Password'
+          newPassword:
+            $ref: '#/x-components/prim/Password'
+    SimulationCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeName
+        properties:
+          universeName:
+            $ref: '#/x-components/prim/UniverseName'
+    SimulationCreateV1:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeData
+        properties:
+          universeData:
+            type: object
+            description: The full universe configuration object passed directly in the request body (iteration 1 style).
+            properties:
+              opportunities:
+                type: array
+                description: Extracurricular opportunities available in this universe for Iteration 2 Story 4.
+                items:
+                  $ref: '#/x-components/group/OpportunityDefinition'
+    SimulationAction:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - action
+          - duration
+        properties:
+          action:
+            $ref: '#/x-components/prim/Activity'
+          duration:
+            $ref: '#/x-components/prim/Duration'
+          targetId:
+            type: string
+            description: Required when action is STUDYING, specifying which exam to study for. Groups may define additional targetId meanings for their own designed activities in their designed routes.
+    OpportunityApply:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - examId
+        properties:
+          examId:
+            $ref: '#/x-components/prim/ExamId'
+    FriendAdd:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        properties:
+          friendName:
+            type: string
+            example: Jordan Lee
+            description: Name of the NPC friend to add
+    SocialConnectionCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - name
+          - closeness
+        properties:
+          name:
+            $ref: '#/x-components/prim/ConnectionName'
+          closeness:
+            $ref: '#/x-components/prim/Closeness'
+    SocietyAttend:
+          in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - duration
+            properties:
+              duration:
+                $ref: '#/x-components/prim/Duration'
+
+    WellbeingAction:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - activity
+          - duration
+        properties:
+          activity:
+            $ref: '#/x-components/prim/WellbeingActivity'
+          duration:
+            $ref: '#/x-components/prim/Duration'
+          targetId:
+            type: string
+            description: Required. For HANG_OUT, the connectionId of the social connection. For ATTEND_CLUB_EVENT, the clubId of a joined club.
+    UniverseCreate:
+      in: body
+      name: body
+      required: true
+      schema:
+        type: object
+        required:
+          - universeName
+          - universeData
+        properties:
+          universeName:
+            $ref: '#/x-components/prim/UniverseName'
+          universeData:
+            type: object
+            description: A universe JSON configuration. Prescribed simulations require courses and exams; group-designed features may extend this with opportunities, clubs, societies, events, or equivalent structures.
+
+  return:
+    Session:
+      type: object
+      properties:
+        session:
+          $ref: '#/x-components/prim/Session'
+    Error:
+      properties:
+        error:
+          type: string
+          $ref: '#/x-components/prim/ErrorType'
+        message:
+          type: string
+          $ref: '#/x-components/prim/ErrorMessage'
+    Empty:
+      type: object
+    User:
+      type: object
+      properties:
+        user:
+          $ref: '#/x-components/group/User'
+    SimulationId:
+      type: object
+      properties:
+        simulationId:
+          $ref: '#/x-components/prim/SimulationId'
+    SimulationList:
+      type: object
+      properties:
+        simulations:
+          type: array
+          items:
+            $ref: '#/x-components/group/SimulationSummary'
+    SimulationStatus:
+      $ref: '#/x-components/group/SimulationFull'
+    LastAction:
+      type: object
+      properties:
+        currentActivity:
+          $ref: '#/x-components/prim/Activity'
+        duration:
+          $ref: '#/x-components/prim/Duration'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+    LastStudyAction:
+      type: object
+      properties:
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        name:
+          type: string
+          example: COMP1531 Final Exam
+        duration:
+          $ref: '#/x-components/prim/Duration'
+    ConcludingNotification:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        notification:
+          type: string
+          example: Congratulations, this simulation has GRADUATED. No further actions can be applied.
+    OpportunityList:
+      type: object
+      required:
+        - opportunities
+      properties:
+        opportunities:
+          type: array
+          items:
+            $ref: '#/x-components/group/OpportunityView'
+
+    OpportunityMembership:
+      type: object
+      required:
+        - opportunityId
+        - isJoined
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        isJoined:
+          type: boolean
+          description: Whether the opportunity is currently joined
+    OpportunityEffects:
+      type: object
+      required:
+        - opportunityId
+        - examId
+        - happinessEffectApplied
+        - academicEffectApplied
+        - weeklyHoursApplied
+        - happiness
+        - studyHoursCompleted
+        - timeElapsed
+        - currentActivity
+      properties:
+        opportunityId:
+          $ref: '#/x-components/prim/OpportunityId'
+        examId:
+          $ref: '#/x-components/prim/ExamId'
+        happinessEffectApplied:
+          type: integer
+          example: 5
+          description: Actual happiness change after applying the 0 to 100 limit
+        academicEffectApplied:
+          type: integer
+          example: 2
+          description: Actual number of study hours added to the selected exam
+        weeklyHoursApplied:
+          $ref: '#/x-components/prim/WeeklyHours'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        studyHoursCompleted:
+          type: integer
+          example: 12
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+        currentActivity:
+          type: string
+          example: OPPORTUNITY:peer-mentoring
+    FriendList:
+      type: object
+      properties:
+        friends:
+          type: array
+          items:
+            $ref: '#/x-components/group/Friend'
+    ConnectionId:
+      type: object
+      properties:
+        connectionId:
+          $ref: '#/x-components/prim/ConnectionId'
+    ConnectionList:
+      type: object
+      properties:
+        connections:
+          type: array
+          items:
+            $ref: '#/x-components/group/SocialConnection'
+    FriendId:
+      type: object
+      properties:
+        friendId:
+          $ref: '#/x-components/prim/FriendId'
+    ClubList:
+      type: object
+      properties:
+        clubs:
+          type: array
+          items:
+            $ref: '#/x-components/group/Club'
+    ClubDetails:
+      $ref: '#/x-components/group/Club'
+    CourseList:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            $ref: '#/x-components/group/Course'
+    CourseDetails:
+      $ref: '#/x-components/group/Course'
+    ExamList:
+      type: object
+      properties:
+        exams:
+          type: array
+          items:
+            $ref: '#/x-components/group/ExamSummary'
+    ExamDetails:
+      $ref: '#/x-components/group/Exam'
+    ExamTakeResult:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [PASS, FAIL]
+          example: PASS
+        simulationStatus:
+          type: string
+          enum: [ACTIVE, GRADUATED, DROPPED_OUT]
+          example: ACTIVE
+          description: Updated simulation status after taking exam
+    SocietyList:
+          type: object
+          properties:
+            societies:
+              type: array
+              items:
+                $ref: '#/x-components/group/Society'
+    SocietyJoinResult:
+      type: object
+      properties:
+        societyId:
+          $ref: '#/x-components/prim/SocietyId'
+        name:
+          type: string
+          example: CSESoc
+    SocietyAttendResult:
+      type: object
+      properties:
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        energy:
+          $ref: '#/x-components/prim/Energy'
+    CourseSummaryList:
+      type: object
+      properties:
+        courses:
+          type: array
+          items:
+            type: object
+            properties:
+              courseId:
+                $ref: '#/x-components/prim/CourseId'
+              name:
+                type: string
+                example: Software Engineering Fundamentals
+    CourseDetailsResult:
+      type: object
+      properties:
+        course:
+          type: array
+          items:
+            type: object
+            properties:
+              courseId:
+                $ref: '#/x-components/prim/CourseId'
+              name:
+                type: string
+                example: Software Engineering Fundamentals
+              courseDetails:
+                type: string
+                example: Introduction to software engineering principles
+              courseStatus:
+                type: string
+                enum: [IN_PROGRESS, PASSED, FAILED]
+                example: IN_PROGRESS
+    ExamSummaryList:
+      type: object
+      properties:
+        exams:
+          type: array
+          items:
+            type: object
+            properties:
+              examId:
+                $ref: '#/x-components/prim/ExamId'
+              courseId:
+                $ref: '#/x-components/prim/CourseId'
+              name:
+                type: string
+                example: Midterm Exam
+              requiredStudyHours:
+                $ref: '#/x-components/prim/StudyHours'
+    ExamDetailsResult:
+      type: object
+      properties:
+        exam:
+          type: array
+          items:
+            type: object
+            properties:
+              examId:
+                $ref: '#/x-components/prim/ExamId'
+              courseId:
+                $ref: '#/x-components/prim/CourseId'
+              name:
+                type: string
+                example: Midterm Exam
+              requiredStudyHours:
+                $ref: '#/x-components/prim/StudyHours'
+    CourseCompletionResult:
+      type: object
+      properties:
+        course:
+          type: array
+          items:
+            type: object
+            properties:
+              courseId:
+                $ref: '#/x-components/prim/CourseId'
+              courseStatus:
+                type: string
+                enum: [IN_PROGRESS, PASSED, FAILED]
+                example: PASSED
+    WellbeingResult:
+      type: object
+      properties:
+        simulationStatus:
+          $ref: '#/x-components/prim/SimulationStatus'
+        currentActivity:
+          type: string
+          example: HANG_OUT
+          description: The wellbeing activity now being performed
+        energy:
+          $ref: '#/x-components/prim/Energy'
+        happiness:
+          $ref: '#/x-components/prim/Happiness'
+        timeElapsed:
+          $ref: '#/x-components/prim/TimeElapsed'
+    Recommendation:
+      type: object
+      properties:
+        recommendation:
+          $ref: '#/x-components/group/RecommendedAction'
+        alternatives:
+          type: array
+          items:
+            $ref: '#/x-components/group/AlternativeAction'
+          description: At least one alternative action is always included
+    ExamReadiness:
+      type: object
+      properties:
+        readiness:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+          description: Readiness based on readiness model
+          example: MEDIUM
+        reasons:
+          type: array
+          items:
+            type: string
+          example:
+            - "Has studied 75% of the study hours required. Keep up the good work!"
+            - "Has a support network with more than two close connections. Having study buddies always boosts readiness for the exam!"
+            - "Has not joined an extracurricular opportunity. A good work-life balance can boost readiness for the exam, so try joining an extracurricular!"
+      required:
+        - readiness
+        - reasons
+    UniverseList:
+      type: object
+      properties:
+        universes:
+          type: array
+          items:
+            type: string
+            example: unsw2025
+          description: List of available universe names (file names without .json suffix)
+    UniverseDetails:
+      type: object
+      description: A full universe JSON configuration object. Groups may reuse this schema for designed routes that manage universe configurations.
+
+paths:
+
+  # ==================== AUTH ROUTES ====================
+
+  /auth/register:
+    post:
+      operationId: authRegister
+      security: []
+      summary: Register a new user
+      description: Takes in information about a new student and registers them in the system, returning a session token.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/body/Register'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Session'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_STUDENT_ID**
+              - Student ID is used by another user
+              - Student ID is not in the format of a lowercase 'z' followed by exactly 7 digits (e.g., z1234567)
+            - **INVALID_FIRST_NAME**
+              - NameFirst contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
+              - NameFirst is less than 2 characters or more than 20 characters
+            - **INVALID_LAST_NAME**
+              - NameLast contains characters other than lowercase letters, uppercase letters, spaces, hyphens, or apostrophes
+              - NameLast is less than 2 characters or more than 20 characters
+            - **INVALID_PASSWORD**
+              - Password is less than 8 characters
+              - Password does not contain at least one number and at least one letter
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /auth/login:
+    post:
+      operationId: authLogin
+      security: []
+      summary: Login a user
+      description: Takes in information about a student to determine if they can log in, returning a session token.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/body/Login'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Session'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_CREDENTIALS**
+              - Student ID does not exist
+              - Password is not correct for the given student ID
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  # ==================== SIMULATION ROUTES ====================
+
+  /simulations:
+    get:
+      operationId: simulationsList
+      summary: List the authenticated student's simulations
+      description: Returns summary information for every simulation owned by the authenticated student.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationList'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+    post:
+      operationId: simulationCreate
+      summary: Create a new simulation
+      description: |
+        Start a new simulation instance for the authenticated student by passing the universe configuration object directly in the request body.
+        The simulation starts in DOOM_SCROLLING state with 100 energy and 50 happiness points.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SimulationCreateV1'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationId'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_UNIVERSE**
+              - Universe data is empty or not a valid object
+              - Universe data is malformed or missing required fields
+              - CourseId does not follow format: 4 uppercase letters (A-Z) followed by 4 digits
+              - Course name or exam name is less than 2 or more than 40 characters
+              - ExamId is less than 2 or more than 20 characters
+            - **MAX_SIMULATIONS**
+              - Student already has 5 simulations
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}:
+    get:
+      operationId: simulationGet
+      summary: Get simulation status
+      description: Get the current status and stats of a specific simulation.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SimulationStatus'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Valid session is provided, but simulation does not belong to the authenticated student, or simulation doesn't exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  # ==================== OTHER ROUTES ====================
+
+  /clear:
+    delete:
+      operationId: clear
+      security: []
+      summary: Reset application state
+      description: Reset the state of the application back to the start.
+      tags:
+        - "Iteration 2 (Prescribed Core)"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Empty'
+
+  # ==================== DESIGNED ROUTES ====================
+  # Copy your group-designed routes into this file below this comment.
+  # These routes should satisfy the Student Wellbeing Advisor requirements in section 4.5 of README.md.
+  # Designed routes that mutate a simulation or simulation-owned state should reject ended simulations.
+  # You may reuse, adapt, or replace the friend/club/course/universe schemas above, and should document any opportunity schema your group introduces.
+  # Each route should include a summary, description, parameters, response schemas, and error cases.
+
+  /simulations/{simulationId}/connections:
+    post:
+      operationId: socialConnectionCreate
+      summary: Create a social connection
+      description: |
+        Creates a new social connection (friend, mentor, study buddy, or family member) for the given simulation.
+        Rejects duplicate connection names within the same simulation, and rejects creation if the simulation has already ended.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SocialConnectionCreate'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConnectionId'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+            - **INVALID_NAME**
+              - Name is empty, not a string, or over 50 characters
+            - **INVALID_CLOSENESS**
+              - Closeness is not an integer between 1 and 5
+            - **DUPLICATE_CONNECTION**
+              - A connection with this name already exists for this simulation
+          schema:
+            $ref: '#/x-components/return/Error'
+
+    get:
+      operationId: socialConnectionsList
+      summary: List social connections
+      description: Returns all social connections for the simulation.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConnectionList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/connections/{connectionId}:
+    delete:
+      operationId: socialConnectionRemove
+      summary: Remove a social connection
+      description: |
+        Removes a social connection from the given simulation. Rejects removal if the simulation has already ended.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/ConnectionId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Empty'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+            - **INVALID_CONNECTION**
+              - Connection ID does not exist for this simulation
+          schema:
+            $ref: '#/x-components/return/Error'
+  /simulations/{simulationId}/last-action:
+    get:
+      operationId: simulationGetLastAction
+      summary: Get the most recent simulation action
+      description: Returns the most recent action performed in the simulation.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/LastAction'
+        400:
+          description: No action has been performed
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/last-study-action:
+    get:
+      operationId: examGetStudyAction
+      summary: Get the most recent study action
+      description: Returns the exam and duration from the simulation's most recent study action.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/LastStudyAction'
+        400:
+          description: The most recent action was not a study action
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/conclusion:
+    get:
+      operationId: simulationGetConcludingNotification
+      summary: Get the simulation conclusion
+      description: Returns the concluding notification for a graduated or dropped-out simulation.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ConcludingNotification'
+        400:
+          description: Simulation is still active
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: Missing or invalid session
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: Simulation does not exist or is not owned by the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+
+  /simulations/{simulationId}/opportunities:
+    get:
+      operationId: opportunitiesList
+      summary: List available extracurricular opportunities
+      description: |
+        Returns the opportunities defined by the simulation's universe and whether the authenticated student has joined each opportunity.
+        This route is read-only. Joining an opportunity does not immediately apply its happiness or academic bonus.
+
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+
+            $ref: '#/x-components/return/OpportunityList'
+
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/societies:
+    get:
+      operationId: societyList
+      summary: List societies not yet joined
+      description: Returns all societies in the simulation's universe that the student has not yet joined.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/societies/{societyId}/join:
+    post:
+      operationId: societyJoin
+      summary: Join a society
+      description: Joins the student to a society in the simulation. Rejects societies that do not exist or have already been joined.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/SocietyId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyJoinResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_SOCIETY**
+              - Society ID does not exist, or the student has already joined this society
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/societies/{societyId}/attend:
+    post:
+      operationId: societyAttend
+      summary: Attend a society event
+      description: |
+        Attends a joined society for a specified duration. Increases happiness and decreases energy per hour attended, and advances simulation time.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/SocietyId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/SocietyAttend'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/SocietyAttendResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_SOCIETY**
+              - Society ID does not exist, or the student has not joined this society
+            - **INVALID_DURATION**
+              - Duration is not between 1 and 4 hours
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/courses:
+    get:
+      operationId: courseRetrieveCourses
+      summary: List all courses
+      description: Returns a summary list of all courses in the simulation's universe.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseSummaryList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/exams:
+    get:
+      operationId: courseRetrieveExams
+      summary: List all exams
+      description: Returns a summary list of all exams across all courses in the simulation's universe.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ExamSummaryList'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/courses/{courseId}:
+    get:
+      operationId: courseRetrieveCourseDetails
+      summary: Get course details
+      description: Returns full details for a specific course, including its description and current status.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/CourseId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseDetailsResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_COURSE**
+              - Course ID does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/exams/{examId}:
+    get:
+      operationId: courseRetrieveExamDetails
+      summary: Get exam details
+      description: Returns full details for a specific exam, including required study hours.
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/ExamId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/ExamDetailsResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_EXAM**
+              - Exam ID does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/courses/{courseId}/completion:
+    get:
+      operationId: courseCompletion
+      summary: Get course completion status
+      description: Returns the completion status of a specific course for the authenticated student (IN_PROGRESS, PASSED, or FAILED).
+      tags:
+        - "Iteration 1 (Group Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/CourseId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/CourseCompletionResult'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the student
+          schema:
+            $ref: '#/x-components/return/Error'
+        400:
+          description: |
+            - **INVALID_COURSE**
+              - Course does not exist
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/opportunities/{opportunityId}/join:
+    post:
+      operationId: opportunityJoin
+      summary: Join an extracurricular opportunity
+      description: |
+        Records the opportunity as joined for the authenticated student's simulation.
+        A simulation may have no more than 3 joined opportunities at one time.
+        Joining records membership only; benefits are applied later through activities, readiness calculations, or recommendations.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: Opportunity joined successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityMembership'
+          examples:
+            application/json:
+              opportunityId: peer-mentoring
+              isJoined: true
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **ALREADY_JOINED**
+              - The opportunity has already been joined
+            - **OPPORTUNITY_LIMIT_REACHED**
+              - The simulation already has 3 joined opportunities
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/opportunities/{opportunityId}/leave:
+    delete:
+      operationId: opportunityLeave
+      summary: Leave an extracurricular opportunity
+      description: |
+        Removes a joined opportunity from the authenticated student's simulation.
+        Effects already applied by earlier activities, readiness calculations, or recommendations are not reversed.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: Opportunity left successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityMembership'
+          examples:
+            application/json:
+              opportunityId: peer-mentoring
+              isJoined: false
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **OPPORTUNITY_NOT_JOINED**
+              - The opportunity has not been joined
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/opportunities/{opportunityId}/apply:
+    post:
+      operationId: opportunityApplyEffects
+      summary: Apply the effects of a joined opportunity
+      description: |
+        Applies the wellbeing, academic, and time effects of an opportunity
+        that the authenticated student has already joined.
+
+        The happiness bonus is applied to the simulation, the academic bonus
+        is added to the selected exam's completed study hours, and the
+        opportunity's weekly time cost is added to the simulation's elapsed
+        time.
+
+        Joining an opportunity alone does not apply these effects. This
+        separate route represents participating in the opportunity.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/path/OpportunityId'
+        - $ref: '#/x-components/header/Session'
+        - $ref: '#/x-components/body/OpportunityApply'
+      responses:
+        200:
+          description: Opportunity effects applied successfully
+          schema:
+            $ref: '#/x-components/return/OpportunityEffects'
+        400:
+          description: |
+            If any of the following are true:
+            - **INVALID_OPPORTUNITY**
+              - Opportunity ID does not exist in the simulation's universe
+            - **OPPORTUNITY_NOT_JOINED**
+              - The student has not joined this opportunity
+            - **INVALID_EXAM**
+              - Exam ID does not exist in the simulation
+            - **SIMULATION_ENDED**
+              - The simulation has graduated or dropped out
+          schema:
+            $ref: '#/x-components/return/Error'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist or does not belong to the authenticated student
+          schema:
+            $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/wellbeing:
+      post:
+        operationId: wellbeingActivityPerform
+        summary: Perform a wellbeing activity
+        description: |
+          Performs a group-designed wellbeing activity for the given simulation.
+          - HANG_OUT: requires targetId to be a valid connectionId. Costs 6 energy per hour
+            (up to 4 hours). Gains (closeness x 4) happiness per hour.
+          - ATTEND_CLUB_EVENT: requires targetId to be the opportunityId of a club/opportunity
+            the simulation has joined. Requires at least 20 energy and at least 3 total study
+            hours completed across all exams before it can be attended. Gains 12 happiness
+            per hour and restores 4 energy per hour (up to 3 hours).
+          Both activities advance timeElapsed by the duration and set currentActivity while performed. The updated simulation state is returned so the effect can be verified.
+        tags:
+          - "Iteration 2 (Designed)"
+        parameters:
+          - $ref: '#/x-components/path/SimulationId'
+          - $ref: '#/x-components/header/Session'
+          - $ref: '#/x-components/body/WellbeingAction'
+        responses:
+          200:
+            description: OK
+            schema:
+              $ref: '#/x-components/return/WellbeingResult'
+          401:
+            description: |
+              - **UNAUTHORISED**
+                - Session is empty or invalid
+            schema:
+              $ref: '#/x-components/return/Error'
+          400:
+            description: |
+              If any of the following are true:
+              - **INVALID_ACTIVITY**
+                - Activity is not HANG_OUT or ATTEND_CLUB_EVENT
+              - **INVALID_DURATION**
+                - Duration is not an integer within the activity's allowed range (1-4 hours for HANG_OUT, 1-3 hours for ATTEND_CLUB_EVENT)
+              - **INVALID_TARGET**
+                - For HANG_OUT, targetId is missing or does not refer to a social connection in this simulation
+                - For ATTEND_CLUB_EVENT, targetId is missing, does not refer to an existing club/opportunity, or the club has not been joined
+              - **INSUFFICIENT_ENERGY**
+                - For HANG_OUT, simulation does not have enough energy to cover this duration's cost
+                - For ATTEND_CLUB_EVENT, simulation has less than 20 energy
+              - **INSUFFICIENT_STUDY_HOURS**
+                - For ATTEND_CLUB_EVENT, fewer than 3 total study hours have been completed across all exams
+          403:
+            description: |
+              - **INVALID_SIMULATION**
+                - Simulation does not exist, does not belong to the student, or has already ended
+            schema:
+              $ref: '#/x-components/return/Error'
+
+  /simulations/{simulationId}/recommendation:
+    get:
+      operationId: recommendationGet
+      summary: Recommend the next action
+      description: |
+        Returns a recommended next action for the simulation based on current energy, current happiness, recent sleep, exam readiness, available social connections, and joined opportunities.
+        The primary recommendation is always an action that is currently valid for the simulation state. At least one alternative action is included; alternatives may be invalid only if isAvailable is false and a reason explains why.
+        Meaningfully different simulation states produce different recommendations.
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/Recommendation'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Simulation does not exist, does not belong to the student, or has already ended
+          schema:
+            $ref: '#/x-components/return/Error'
+
+/simulations/{simulationId}/exams/{examId}/readiness:
+  get:
+    operationId: examReadiness
+    summary: Get information to understand exam readiness
+    description: |
+      Returns academic readiness information for a specific exam.
+
+      The readiness model considers:
+        1. Study progress:
+           - Passes when study progress is at least 75% of required study hours.
+        2. Social Connections:
+           - Passes when the student has at least two close connections
+             with closeness greater than or equal to 3.
+        3. Opportunity:
+           - Passes when the student has joined an extracurricular opportunity.
+    tags:
+      - "Iteration 2 (Designed)"
+    parameters:
+      - $ref: '#/x-components/path/SimulationId'
+      - $ref: '#/x-components/path/ExamId'
+      - $ref: '#/x-components/header/Session'
+    responses:
+      200:
+        description: Exam readiness information
+        schema:
+          $ref: '#/x-components/return/ExamReadiness'
+
+      401:
+        description: |
+          - **UNAUTHORISED**
+            - Session header is missing or invalid.
+        schema:
+          $ref: '#/x-components/return/Error'
+
+      403:
+        description: |
+          - **INVALID_SIMULATION**
+            - Simulation does not exist.
+            - Simulation does not belong to the authenticated student.
+        schema:
+          $ref: '#/x-components/return/Error'
+
+      400:
+        description: |
+          - **INVALID_EXAM**
+            - ExamId does not exist in the simulation.
+        schema:
+          $ref: '#/x-components/return/Error'
+
+  # ==================== STORY 1: PLAN A BALANCED WEEK ====================
+  # Compares at least 3 possible next actions for the student's current simulation
+  # state, and surfaces at least one current risk or blocker. All values are derived
+  # live from the simulation (energy, happiness, timeElapsed, action history, joined
+  # societies/opportunities, exam readiness) — never hardcoded.
+
+  /simulations/{simulationId}/advisor/plan:
+    get:
+      operationId: advisorPlan
+      summary: Inspect a short-term plan comparing upcoming actions
+      description: |
+        Returns a comparison of at least 3 possible next actions for this
+        simulation (e.g. STUDYING, SLEEPING, EATING, EXERCISING, DOOM_SCROLLING,
+        or designed activities/opportunities), each annotated with whether it is
+        currently allowed, an expected benefit/cost/risk, and a short reason.
+        Also identifies at least one current risk or blocker based on live
+        simulation state (e.g. low energy, low happiness, insufficient recent
+        sleep, upcoming exam pressure, no social support, no joined
+        opportunities, or low exam readiness).
+      tags:
+        - "Iteration 2 (Designed)"
+      parameters:
+        - $ref: '#/x-components/path/SimulationId'
+        - $ref: '#/x-components/header/Session'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/x-components/return/AdvisorPlan'
+        401:
+          description: |
+            - **UNAUTHORISED**
+              - Session is empty or invalid (does not refer to a valid logged-in student session)
+          schema:
+            $ref: '#/x-components/return/Error'
+        403:
+          description: |
+            - **INVALID_SIMULATION**
+              - Valid session is provided, but simulation does not belong to the authenticated student, or simulation doesn't exist
+          schema:
+            $ref: '#/x-components/return/Error'
