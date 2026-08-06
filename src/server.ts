@@ -35,6 +35,7 @@ import {
 } from './opportunity.js';
 import { wellbeingActivityPerform } from './wellbeing.ts';
 import { simulationGetRecommendation } from './recommendation.ts';
+import { examAttemptRecord } from './exam.ts';
 
 import { loadExistingData, saveData } from './dataStore.ts';
 import { calcAcademicReadiness } from './readiness.ts';
@@ -597,6 +598,24 @@ app.get('/simulations/:simulationId/exams/:examId', (req: Request, res: Response
   const simulationId = Number(req.params.simulationId);
   const examId = req.params.examId as string;
   const result = courseRetrieveExamDetails(simulationId, examId);
+
+  if ('error' in result) {
+    if (result.error === 'INVALID_SIMULATION') {
+      return res.status(403).json(result);
+    }
+    return res.status(400).json(result);
+  }
+  return res.status(200).json(result);
+});
+
+// attempt an exam and records the result
+app.post('/simulations/:simulationId/exams/:examId/attempt', (req: Request, res: Response) => {
+  const studentId = getAuthenticatedStudentId(req, res);
+  if (!studentId) return;
+
+  const simulationId = Number(req.params.simulationId);
+  const examId = req.params.examId as string;
+  const result = examAttemptRecord(examId, simulationId, studentId);
 
   if ('error' in result) {
     if (result.error === 'INVALID_SIMULATION') {
