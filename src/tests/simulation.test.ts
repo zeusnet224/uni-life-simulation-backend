@@ -2,7 +2,7 @@
 // Covers: error validation, DROPPED_OUT conditions from energy/happiness/course/exam failures
 import { describe, expect, test, beforeEach } from 'vitest';
 import request from 'sync-request-curl';
-import config from './config.json' with { type: 'json' };
+import config from '../config.json' with { type: 'json' };
 
 const { port, url } = config;
 const SERVER_URL = `${url}:${port}`;
