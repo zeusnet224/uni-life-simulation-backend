@@ -5,7 +5,7 @@ import {
   test,
 } from 'vitest';
 import request from 'sync-request-curl';
-import config from './config.json' with { type: 'json' };
+import config from '../config.json' with { type: 'json' };
 import universeData from '../../universes/universe4.json' with {
   type: 'json'
 };
